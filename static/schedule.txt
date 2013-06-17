@@ -1,0 +1,84 @@
+////////////////////////////////
+// Main Proposal
+////////////////////////////////
+	
+	BlockArena will be a multiplayer falling-block puzzle game. It will mainly be played in 1-on-1 battles between two
+	players, in which the two players will have a limited time to out-perform each other. The central idea of the game is
+	that the players will have two kinds of pieces that can fall, normal blocks, and clearer blocks. When a clearer block
+	touches a same-colored normal block, it will clear that block, and any same color blocks that are adjacent to that
+	block, recursively. If normal blocks of the same color form a rectangle, they will lock into that shape, and become
+	worth many more points when cleared. The main strategy to win the game will be to form blocks into large rectangles and
+	clear them as quickly as possible.
+
+////////////////////////////////
+// Implementation
+////////////////////////////////
+
+	%%%%%%%%%%%%%
+	% LIBRARIES %
+	%%%%%%%%%%%%%
+
+	-Nodejs (http://nodejs.org/)
+	-Raphaeljs (http://raphaeljs.com/)
+	-Socket.io (http://socket.io/)
+	-MongoDB (http://www.mongodb.org/)
+	
+	
+	%%%%%%%%
+	% GAME %
+	%%%%%%%%
+
+	The game itself will be mostly controlled from the client side. There will be an HTML canvas, controlled by javascript.
+	The canvas will have the Raphael vector graphics library enabled to make some of the animations better. Using a simple
+	object-oriented back-end, the implementation of the game's mechanics themselves should be relatively simple with a few
+	basic objects and functions. The game will have a login menu where a user can either log in to an account or optionally
+	try a single-player version of the game. Should they log in successfully, they will be able to enter a multiplayer game
+	or check their profile. In a multiplayer game, the client will send update information about the player's moves to the
+	server, and recieve game updates from the server.
+
+	%%%%%%%%%%
+	% SERVER %
+	%%%%%%%%%%
+	
+	The server will be a standard Node-based server app. The server should handle all transactions between the database of
+	profiles and the client. Additionally, whenever a game is started, the server should be responsible for initializing
+	the socket response and handling a new game being created.
+
+			-----------
+			- SOCKETS -
+			-----------		
+
+			Socket.io will be used to handle all of the game's in-action updates. Each player will get to see their
+			opponent's board (minus color) on the other side of their screen. This means that the sockets will have to
+			handle transacting client board data to the server at a fairly regular rate.
+
+			------------
+			- DATABASE -
+			------------
+
+			The profiles for players will all be stored in a MongoDB database, related by facebook login credentials. The
+			information stored in a profile will be a display name, win/loss ratio, and rank. Rank will be determined by
+			victories and losses against players of similar ranks, and will be used to help place a player in a match.
+
+///////////////////
+// Schedule
+///////////////////
+
+5/9 - Schedule and Proposal complete
+
+5/14 - Functional Single-Player version of game complete
+
+5/18 - Functional Multiplayer version of game complete (add socket interaction)
+
+5/22 - Facebook authentication and database running
+
+5/25 - Go home for Memorial Day, lose all focus. (but actually, I'll probably be home for a few weeks if you'd like to talk
+about remote work at all.)
+
+5/28 - Display for user profile page complete, update of visuals for game.
+
+5/30 - First working copy finished.
+
+6/5 - Tweaked/Polished copy finished.
+
+6/? - ?/? - Work on this obsessively, present to EA, profit vigorously?
