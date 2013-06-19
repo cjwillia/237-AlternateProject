@@ -1,14 +1,10 @@
 
 function assignSocketResponses() {
 	server.on('connected', function () {
-		this.connected = true;
 	});
 
 	server.on('gamecreated', function(data) {
-		console.log('gameCreated');
 		board.gameId = data.game;
-		board.sendGrid();
-		board.sendScore();
 	});
 
 	server.on('gridrequest', function() {
@@ -19,7 +15,17 @@ function assignSocketResponses() {
 		board.sendScore();
 	});
 
-	server.on('test', function() {
-		console.log("flawless victory");
+	server.on('ready', function(data) {
+		console.log(data.gamelist);
+		scr.gameList = data.gamelist;
+		scr.menubarGameList();
+	});
+
+	server.on('gamejoinfail', function() {
+		alert('Error joining game.');
+	});
+
+	server.on('gamejoinsuccess', function(data) {
+		board.gameId = data.game;
 	});
 }

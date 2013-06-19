@@ -29,13 +29,21 @@ function drawEmptySpace(r, x, y, w, h) {
 	});
 }
 
-var lastTime = new Date();
+function showMenubar() {
+	var menubar = $("#menubar");
+	menubar.animate({ top: "0%" });
+	console.log('showing menubar');
+}
+
+function hideMenubar() {
+	var menubar = $("#menubar");
+	menubar.animate({ top: "-20%" });
+	console.log('hiding menubar');
+}
 
 function updateBoard() {
-	console.log(new Date() - lastTime);
 	board.tick()
 	board.draw(r);
-	lastTime = new Date();
 }
 
 function runGameLoop() {

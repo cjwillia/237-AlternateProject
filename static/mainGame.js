@@ -19,31 +19,42 @@ var colors = ["red", "blue", "green", "yellow"];
 
 function userControl() {
 	document.onkeydown = function(event){
+		var keyCodes = {"left": 37, "up": 38, "right": 39, "down": 40, "space": 32, "s": 83, "t": 84};
+		if(scr.allowTyping) {
+			if(event.keyCode === keyCodes["t"]) {
+				scr.allowTyping = false;
+				hideMenubar();
+			}
+		}
+		else {
+			event.preventDefault();
 
-		event.preventDefault();
-
-		if(board.disableKeys){
-			return;
-		}
-		var keyCodes = {"left": 37, "up": 38, "right": 39, "down": 40, "space": 32, "s": 83};
-
-		if(event.keyCode === keyCodes["left"]) {
-			board.input = "moveleft";
-		}
-		if(event.keyCode === keyCodes["up"]) {
-			board.input = "rotatecounter";
-		}
-		if(event.keyCode === keyCodes["right"]) {
-			board.input = "moveright";
-		}
-		if(event.keyCode === keyCodes["down"]) {
-			board.input = "movedown";
-		}
-		if(event.keyCode === keyCodes["space"]) {
-			board.input = "harddrop";
-		}
-		if(event.keyCode === keyCodes["s"]) {
-			board.input = "sendupdate";
+			if(board.disableKeys){
+				return;
+			}
+			
+			if(event.keyCode === keyCodes["left"]) {
+				board.input = "moveleft";
+			}
+			if(event.keyCode === keyCodes["up"]) {
+				board.input = "rotatecounter";
+			}
+			if(event.keyCode === keyCodes["right"]) {
+				board.input = "moveright";
+			}
+			if(event.keyCode === keyCodes["down"]) {
+				board.input = "movedown";
+			}
+			if(event.keyCode === keyCodes["space"]) {
+				board.input = "harddrop";
+			}
+			if(event.keyCode === keyCodes["s"]) {
+				board.input = "sendupdate";
+			}
+			if(event.keyCode === keyCodes["t"]) {
+				scr.allowTyping = true;
+				showMenubar();
+			}
 		}
 	};
 }
@@ -54,6 +65,7 @@ window.onload = function () {
 	scr = new Screen();
 	viewportWidth = getViewportWidth();
 	viewportHeight = getViewportHeight();
+	scr.menubarLogin();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	//should default to menu for finished project
 	scr.liveGame();

@@ -50,5 +50,36 @@ table {
 /* END CSS RESET */
 
 body {
+	
+}
+
+.menubardivider {
+	border-left: 1px solid #3B3738;
+	border-right: 1px solid #B39FA6;
+	height: 100%;
+}
+
+.menubarcontent {
+	margin-left: 1em;
+	margin-right: 1em;
+}
+
+#menubar {
+	z-index: 2;
+	position: fixed;
+	width: 100%;
+	height: 20%;
+	top: -20%;
+	background-color: #59454C;
+}
+
+#menubarContent {
+	position: absolute;
+	margin: 1em;
+
+}
+
+#main {
+	z-index: 1;
 	background-color: #D63636;
 }

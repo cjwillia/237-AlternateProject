@@ -14,6 +14,9 @@ app.get('/static/:file', function(req, res) {
   res.sendfile(__dirname + '/static/' + req.params.file);
 });
 
+app.post('/login', function(req, res) {
+});
+
 
 
 //socket stuff
@@ -93,6 +96,12 @@ Player.prototype.getScore = function() {
 io.sockets.on('connection', function(socket) {
   socket.emit('connected');
 
+  socket.on('username', function(data){
+    socket.set('nickname', data.username, function() {
+      socket.emit('ready', {'gamelist': handler.gameList});
+    });
+  });
+
   socket.on('newgamerequest', function(data) {
     var p = new Player(data.name, data.grid, socket);
     var g = new Game(data.name, p);
@@ -100,8 +109,15 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('joinrequest', function(data) {
-    var p = new Player(data.name, data.grid, socket);
-    handler.gameList[handler.nextGameIndex].addPlayer(p);
+    var game = handler.gameList[handler.nextGameIndex];
+    if(game) {
+      var p = new Player(data.name, data.grid, socket);
+      game.addPlayer(p);
+      socket.emit('gamejoinsuccess', {'game': game.id});
+    }
+    else {
+      socket.emit('gamejoinfail');
+    }
   });
 
   socket.on('disconnect', function() {
