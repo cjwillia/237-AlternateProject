@@ -39,7 +39,6 @@ function Game(id, player) {
 	this.id = id;
   this.players = [player];
   this.status = 0;
-  handler.add(this);
 }
 
 Game.prototype.addPlayer = function(p) {
@@ -54,6 +53,14 @@ Game.prototype.addPlayer = function(p) {
 Game.prototype.start = function() {
   this.status = 1;
   handler.nextGameIndex++;
+  this.players.forEach(function(p) {
+    p.socket.emit('gamestarted');
+  });
+  var t = this;
+  var f = function() {
+    t.distributeUpdate();
+  }
+  setTimeout(f, 200);
 }
 
 Game.prototype.end = function() {
@@ -61,13 +68,22 @@ Game.prototype.end = function() {
 }
 
 Game.prototype.distributeUpdate = function() {
+  var playerA = this.players[0];
+  var playerB = this.players[1];
+  var socketA = playerA.socket;
+  var socketB = playerB.socket;
   if(this.status === 1) {
-    var playerA = this.players[0];
-    var playerB = this.players[1];
-    var socketA = playerA.socket;
-    var socketB = playerB.socket;
+    var t = this;
+    var f = function() {
+      t.distributeUpdate();
+    }
     socketA.emit('update', { score: playerB.score, grid: playerB.grid });
     socketB.emit('update', { score: playerA.score, grid: playerA.grid });
+    setTimeout(f, 200);
+  }
+  if(this.status === 2) {
+    socketA.emit('gameover');
+    socketB.emit('gameover');
   }
 }
 
@@ -76,12 +92,13 @@ function Player(name, grid, socket) {
 	this.grid = grid;
   this.socket = socket;
 	this.score = 0;
+  var t = this;
   this.socket.on('gridupdate', function(data) {
-    this.grid = data.grid;
+    t.grid = data.grid;
     socket.emit('test');
   });
   this.socket.on('scoreupdate', function(data) {
-    this.score = data.score;
+    t.score = data.score;
   });
 }
 
@@ -98,13 +115,24 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('username', function(data){
     socket.set('nickname', data.username, function() {
-      socket.emit('ready', {'gamelist': handler.gameList});
+      var send = [];
+      handler.gameList.forEach(function(g){
+        var o = {};
+        o.players = [];
+        g.players.forEach(function(p, i){
+          o.players[i] = p.name;
+        });
+        o.id = g.id;
+        send.push(o);
+      });
+      socket.emit('ready', {'gamelist': send});
     });
   });
 
   socket.on('newgamerequest', function(data) {
     var p = new Player(data.name, data.grid, socket);
     var g = new Game(data.name, p);
+    handler.add(g);
     socket.emit('gamecreated', {'game': g.id});
   });
 
@@ -118,6 +146,14 @@ io.sockets.on('connection', function(socket) {
     else {
       socket.emit('gamejoinfail');
     }
+  });
+
+  socket.on('gridrequest', function() {
+
+  });
+
+  socket.on('scorerequest', function() {
+
   });
 
   socket.on('disconnect', function() {

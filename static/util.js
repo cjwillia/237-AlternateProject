@@ -29,6 +29,14 @@ function drawEmptySpace(r, x, y, w, h) {
 	});
 }
 
+function drawSimpleBlock(r, x, y, w, h) {
+	var rect = r.rect(x, y, w, h);
+	rect.attr({
+		"stroke-width" : 0,
+		"fill" : "#CCCCCC"
+	});
+}
+
 function showMenubar() {
 	var menubar = $("#menubar");
 	menubar.animate({ top: "0%" });
@@ -37,7 +45,7 @@ function showMenubar() {
 
 function hideMenubar() {
 	var menubar = $("#menubar");
-	menubar.animate({ top: "-20%" });
+	menubar.animate({ top: "-22%" });
 	console.log('hiding menubar');
 }
 

@@ -4,7 +4,7 @@ function assignSocketResponses() {
 	});
 
 	server.on('gamecreated', function(data) {
-		board.gameId = data.game;
+		scr.gameId = data.game;
 	});
 
 	server.on('gridrequest', function() {
@@ -13,6 +13,11 @@ function assignSocketResponses() {
 
 	server.on('scorerequest', function() {
 		board.sendScore();
+	});
+
+	server.on('update', function(data) {
+		board.opponentBoard.updateGrid(data.grid);
+		board.opponentBoard.updateScore(data.score);
 	});
 
 	server.on('ready', function(data) {
@@ -28,4 +33,13 @@ function assignSocketResponses() {
 	server.on('gamejoinsuccess', function(data) {
 		board.gameId = data.game;
 	});
+
+	server.on('gamestarted', function(){
+		console.log('Live Game Started!');
+		scr.liveGame();
+	});
+
+	server.on('test', function() {
+		console.log('test');
+	})
 }

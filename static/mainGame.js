@@ -8,50 +8,58 @@ var gameLoop;
 var r;
 var viewportWidth;
 var viewportHeight;
-var boardx = 100;
-var boardy = 100;
-var boardWidth = 300;
-var boardHeight = 350;
 var rows = 9;
 var cols = 6;
+var menuColor = "#4D2037";
 var colors = ["red", "blue", "green", "yellow"];
 
 
 function userControl() {
 	document.onkeydown = function(event){
-		var keyCodes = {"left": 37, "up": 38, "right": 39, "down": 40, "space": 32, "s": 83, "t": 84};
+		var keyCodes = {
+			"enter": 13,
+			"left": 37,
+			"up": 38,
+			"right": 39,
+			"down": 40,
+			"space": 32,
+			"s": 83,
+			"t": 84,
+			"`": 192
+		};
 		if(scr.allowTyping) {
-			if(event.keyCode === keyCodes["t"]) {
+			if(event.keyCode === keyCodes["`"]) {
 				scr.allowTyping = false;
 				hideMenubar();
+			}
+			if(event.keyCode === keyCodes["enter"]) {
+				scr.parseCommand();
 			}
 		}
 		else {
 			event.preventDefault();
-
-			if(board.disableKeys){
-				return;
-			}
+			if(board){
+				if(board.disableKeys){
+					return;
+				}
 			
-			if(event.keyCode === keyCodes["left"]) {
-				board.input = "moveleft";
+				if(event.keyCode === keyCodes["left"]) {
+					board.input = "moveleft";
+				}
+				if(event.keyCode === keyCodes["up"]) {
+					board.input = "rotatecounter";
+				}
+				if(event.keyCode === keyCodes["right"]) {
+					board.input = "moveright";
+				}
+				if(event.keyCode === keyCodes["down"]) {
+					board.input = "movedown";
+				}
+				if(event.keyCode === keyCodes["space"]) {
+					board.input = "harddrop";
+				}
 			}
-			if(event.keyCode === keyCodes["up"]) {
-				board.input = "rotatecounter";
-			}
-			if(event.keyCode === keyCodes["right"]) {
-				board.input = "moveright";
-			}
-			if(event.keyCode === keyCodes["down"]) {
-				board.input = "movedown";
-			}
-			if(event.keyCode === keyCodes["space"]) {
-				board.input = "harddrop";
-			}
-			if(event.keyCode === keyCodes["s"]) {
-				board.input = "sendupdate";
-			}
-			if(event.keyCode === keyCodes["t"]) {
+			if(event.keyCode === keyCodes["`"]) {
 				scr.allowTyping = true;
 				showMenubar();
 			}
@@ -65,9 +73,10 @@ window.onload = function () {
 	scr = new Screen();
 	viewportWidth = getViewportWidth();
 	viewportHeight = getViewportHeight();
-	scr.menubarLogin();
+	userControl();
+	//scr.menubarLogin();
 	r = Raphael('main', viewportWidth, viewportHeight);
-	//should default to menu for finished project
-	scr.liveGame();
+	menu = new Menu(menuColor);
+	menu.draw();
 };
 

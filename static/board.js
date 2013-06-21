@@ -1,4 +1,4 @@
-function Board(x, y, w, h, r, cl, c) {
+function Board(x, y, w, h, r, cl, c, multi) {
 	
 	this.x = x;
 	this.y = y;
@@ -13,10 +13,10 @@ function Board(x, y, w, h, r, cl, c) {
 	this.paddingHorizontal = Math.floor(((w / cl) - this.pieceWidth) / 2);
 	this.paddingVertical = Math.floor(((h / r) - this.pieceHeight) / 2);
 	this.colors = c;
+	this.multi = multi;
 	this.lockInTimer = 20;
 	this.fallTimer = 10;
 	this.fall = {};
-	this.systems = [];
 	this.clearers = [];
 	this.currentAnimations = [];
 	this.combo = 1;
@@ -46,8 +46,17 @@ function Board(x, y, w, h, r, cl, c) {
 ////////////////////////////
 
 Board.prototype.init = function() {
-	this.fall = new FallingPiece();
-	this.grid[this.fall.x][this.fall.y] = this.fall;
+	if(this.multi) {
+		var opponentBoardx = viewportWidth - this.x - this.width;
+		this.opponentBoard = new OpponentBoard(opponentBoardx, this.y, this.width, this.height, this.rows, this.cols, this.gridWidth, this.gridHeight, this.paddingHorizontal, this.paddingVertical);
+		this.fall = new FallingPiece();
+		this.grid[this.fall.x][this.fall.y] = this.fall;
+	}
+	else {
+		this.fall = new FallingPiece();
+		this.grid[this.fall.x][this.fall.y] = this.fall;
+	}
+	runGameLoop();
 	board.draw(r);
 }
 
@@ -72,29 +81,12 @@ Board.prototype.draw = function(r) {
 			}
 		}
 	}
+
+	if(this.multi && this.opponentBoard.grid) {
+		this.opponentBoard.draw();
+	}
 }
 
-Board.prototype.addSystemComponents = function(system) {
-	var x = system.x;
-	var y = system.y;
-	var w = system.w;
-	var h = system.h;
-	var color = system.color;
-	var grid = this.grid;
-	for(var i = x; i < h; i++){
-		for(var j = y; j < w; j++){
-			if(i === x && j === y){
-				//do nothing
-			}
-			else{ 
-				var comp = new SystemComponent(i, j, color, system);
-				grid[i][j] = comp;
-				system.components.push(comp);
-			}
-		}
-	}
-	this.grid = grid;
-}
 
 Board.prototype.blockPixelCoords = function(x, y) {
 	var res = [];
@@ -171,10 +163,6 @@ Board.prototype.handleFallingPieceMovement = function() {
 }
 
 Board.prototype.tick = function() {
-	if(this.input === "sendupdate") {
-		server.emit('newgamerequest', {name: 'default', grid: this.simpleGrid()});
-		this.input = "";
-	}
 	var grid = this.grid;
 	if(this.fallingPieceOnBottom()) {
 		if(this.lockInTimer <= 0) {
@@ -333,6 +321,8 @@ Board.prototype.pieceLock = function() {
 	this.gravitize();
 	this.draw(r);
 
+	this.sendUpdates();
+
 	this.fall = new FallingPiece();
 	return true;
 }
@@ -356,6 +346,11 @@ Board.prototype.simpleGrid = function() {
 		}
 	}
 	return grid;
+}
+
+Board.prototype.sendUpdates = function() {
+	this.sendGrid();
+	this.sendScore();
 }
 
 Board.prototype.sendGrid = function() {

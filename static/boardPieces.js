@@ -40,27 +40,6 @@ function StationaryClearer(x, y, color) {
 	board.clearers.push(this);
 }
 
-function System(x, y, w, h, color, grid) {
-	this.class = "System";
-	this.x = w > 0 ? x : x + w;
-	this.y = h > 0 ? y : y + h;
-	this.w = Math.abs(w);
-	this.h = Math.abs(h);
-	this.color = color;
-	this.image = undefined;
-	this.inSystem = false;
-	this.pointValue = 8;
-}
-
-function SystemComponent(x, y, color, parent){
-	this.class = "SystemComponent";
-	this.x = x;
-	this.y = y;
-	this.color = color;
-	this.parent = parent;
-	this.inSystem = true;
-}
-
 ////////////////////////////
 // OBJECT PROTO-METHODS
 ////////////////////////////
@@ -249,46 +228,4 @@ StationaryClearer.prototype.animateClear = function() {
 	var im = this.image;
 	im.animateWith(board.globalAnimationObject, board.globalAnimation, {opacity: 0}, board.clearTime);
 	return this.pointValue;
-}
-
-System.prototype.draw = function() {
-	r.setStart();
-	var gridArea = board.gridWidth * board.gridHeight;
-	var rect = r.rect(this.x, this.y, ((this.x + this.w) * board.gridWidth) + this.pieceWidth, ((this.y * this.h) * board.gridHeight) + this.pieceWidth, Math.floor(gridHeight / 800));
-	rect.attr({fill: this.color, stroke: "black", "stroke-opacity": 0.8})
-	this.image = r.setFinish();
-}
-
-System.prototype.gravity = function() {
-	var spaceBelow = [];
-	var res = false;
-
-	while(spaceBelow.length === 0 && ((this.y + this.h) + 1) !== board.rows){
-		for(var i = this.x; i < this.x + this.w; i++) {
-			if(spaceBelow !== 0) {
-				spaceBelow.push(board.grid[i][(this.y + this.h) + 1]);
-			}
-		}
-		if(spaceBelow.length === 0) {
-			res = true;
-			for(var i = this.x; i < this.x + this.w; i++) {
-				board.grid[i][this.y] = 0;
-			}
-			this.y = this.y + 1;
-			board.grid[this.x][this.y] = this;
-			this.components = [];
-			board.addSystemComponents(this);
-		}
-	}
-	return res;
-}
-
-System.prototype.animateClear = function() {
-	var im = this.image;
-	im.animateWith(board.globalAnimationObject, board.globalAnimation, {opacity: 0}, board.clearTime);
-	return this.pointValue;
-}
-
-System.prototype.updatePointValue = function() {
-	this.pointValue = this.w === this.h ? this.w * this.h * this.w : this.w * this.h * 2;
 }

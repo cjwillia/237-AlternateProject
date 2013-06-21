@@ -1,13 +1,16 @@
 function Screen() {
 	this.state = "menu";
 	this.allowTyping = false;
+	this.gameId = undefined;
 	this.gameList = [];
 	this.username = "NONE";
+	this.selectedGame = "NONE";
 }
 
-Screen.prototype.menu = function() {
-	this.state = "menu";
-	menu = new Menu();
+Screen.prototype.parseCommand = function() {
+	var inp = $("#textbar")[0].value;
+	//temporary functionality
+	this.username = inp;
 }
 
 Screen.prototype.menubarLogin = function() {
@@ -37,29 +40,38 @@ Screen.prototype.menubarLogin = function() {
 }
 
 Screen.prototype.menubarGameList = function() {
-	console.log('gl');
-	var content = $("#menubarContent");
-	content.html("");
-	var createButton = $("<button>");
-	createButton.attr('id', 'createButton');
-	createButton.html('Create Game');
-	createButton.click(function() {
-		server.emit('newgamerequest');
+}
+
+Screen.prototype.generateGamelistHtml = function() {
+	var res = $("<ul>");
+	var l = this.gameList;
+	l.forEach(function(g) {
+		var li = $("<li>");
+		var s = "";
+		s += g.id;
+		s += ", ";
+		s += g.players.length === 0 ? "No current players. :c" : g.players.length + " in game";
+		li.click(function(){
+			scr.selectedGame = g.id;
+			$('.selectedgame').removeClass('selectedgame');
+			li.addClass('selectedgame');
+		});
+		li.html(s);
+		res.append(li);
 	});
-	var joinButton = $("<button>");
-	joinButton.attr('id', 'joinButton');
-	joinButton.html('Join Game');
-	joinButton.click(function() {
-		server.emit('joinrequest');
-	});
-	content.append(createButton);
-	content.append(joinButton);
+	return res;
+}
+
+Screen.prototype.singleGame = function() {
+	
 }
 
 Screen.prototype.liveGame = function() {
 	this.state = "liveGame";
-	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors);
-	userControl();
+	var boardx = viewportWidth / 10;
+	var boardy = viewportHeight / 5;
+	var boardWidth = viewportWidth / 5;
+	var boardHeight = viewportHeight * 3 / 5;
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, true);
 	board.init();
-	runGameLoop();
 }

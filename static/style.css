@@ -67,19 +67,27 @@ body {
 #menubar {
 	z-index: 2;
 	position: fixed;
-	width: 100%;
-	height: 20%;
-	top: -20%;
+	width: 98%;
+	top: -22%;
 	background-color: #59454C;
+	padding: 1em;
 }
 
 #menubarContent {
 	position: absolute;
-	margin: 1em;
+	left: 0%;
+	top: 0%;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+}
 
+#textbar {
+	margin-left: 1%;
+	width: 98%;
 }
 
 #main {
 	z-index: 1;
-	background-color: #D63636;
+	background-color: #A30586;
 }
