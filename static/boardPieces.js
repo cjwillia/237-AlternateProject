@@ -37,7 +37,6 @@ function StationaryClearer(x, y, color) {
 	this.image = undefined;
 	this.pointValue = 1;
 	this.clearMark = false;
-	board.clearers.push(this);
 }
 
 ////////////////////////////
@@ -48,13 +47,21 @@ FallingPiece.prototype.move = function(dx, dy) {
 	var newx = this.x + dx;
 	var newy = this.y + dy;
 	var leftLimit = this.direction === 0 ? 1 : 0;
-	var rightLimit = this.direction === 1 ? board.cols - 1 : board.cols;
-	var topLimit = this.direction === 2 ? 1 : 0;
+	var topLimit = this.direction === 1 ? 1 : 0;
+	var rightLimit = this.direction === 2 ? board.cols - 1 : board.cols;
 	var botLimit = this.direction === 3 ? board.rows - 1 : board.rows;
 	var grid = board.grid;
 	if(leftLimit <= newx && newx < rightLimit && topLimit <= newy && newy < botLimit) {
-		var b = grid[this.x + dx][this.y + dy];
-		if(b === 0){
+		var b = grid[newx][newy];
+		var b2x = this.direction % 2 !== 0 ? newx : (this.direction === 0 ? newx - 1 : newx + 1);
+		var b2y = this.direction % 2 === 0 ? newy : (this.direction === 1 ? newy - 1 : newy + 1);
+		var b2 = grid[b2x][b2y];
+		console.log(b2);
+		if(b2 === this) {
+			b2 = 0;
+		}
+		console.log(b2);
+		if(b === 0 && b2 === 0){
 			grid[this.x][this.y] = 0;
 			this.x = newx;
 			this.y = newy;

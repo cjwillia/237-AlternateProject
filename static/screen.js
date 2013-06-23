@@ -63,7 +63,13 @@ Screen.prototype.generateGamelistHtml = function() {
 }
 
 Screen.prototype.singleGame = function() {
-	
+	this.state = "singleGame";
+	var boardx = viewportWidth * 4 / 10;
+	var boardy = viewportHeight / 5;
+	var boardWidth = viewportWidth / 5;
+	var boardHeight = viewportHeight * 3 / 5;
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, false);
+	board.init();
 }
 
 Screen.prototype.liveGame = function() {
