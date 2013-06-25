@@ -50,8 +50,12 @@ function hideMenubar() {
 }
 
 function updateBoard() {
-	board.tick()
-	board.draw(r);
+	if(!board.animating){
+		board.tick();
+		if(!board.animating){
+			board.draw(r);
+		}
+	}
 }
 
 function runGameLoop() {

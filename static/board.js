@@ -18,7 +18,7 @@ function Board(x, y, w, h, r, cl, c, multi) {
 	this.fallTimer = 10;
 	this.fall = {};
 	this.clearers = [];
-	this.currentAnimations = [];
+	this.animating = false;
 	this.combo = 1;
 	this.score = 0;
 	this.clearTime = 200;
@@ -65,18 +65,17 @@ Board.prototype.draw = function(r) {
 	r.clear();
 	r.rect(this.x, this.y, this.width, this.height).attr({fill: "black"});
 
-	for(var i = 0; i < this.cols; i++){
-		for(var j = 0; j < this.rows; j++){
+	r.text(this.x - 20, this.y, this.score + "");
+
+	for(var i = 0; i < this.cols; i++) {
+		for(var j = 0; j < this.rows; j++) {
 			var pieceX = this.x + (i * this.gridWidth) + this.paddingHorizontal;
 			var pieceY = this.y + (j * this.gridHeight) + this.paddingVertical;
-			if(grid[i][j] === 0){
+			if(grid[i][j] === 0) {
 				drawEmptySpace(r, pieceX, pieceY, this.pieceWidth, this.pieceHeight);
 			}
-			// systems will be drawn separately
-			else if(grid[i][j].inSystem){
-				// do nothing
-			}
-			else{
+			else {
+				drawEmptySpace(r, pieceX, pieceY, this.pieceWidth, this.pieceHeight);
 				grid[i][j].draw();
 			}
 		}
@@ -168,6 +167,7 @@ Board.prototype.tick = function() {
 	if(this.fallingPieceOnBottom()) {
 		if(this.lockInTimer <= 0) {
 			this.pieceLock();
+			this.fallTimer = 10;
 			return true;
 		}
 		if(this.input === "movedown") {
@@ -211,14 +211,53 @@ Board.prototype.tick = function() {
 	}
 }
 
-Board.prototype.gravitize = function() {
+Board.prototype.gravitize = function(cb) {
+	var anims = [];
+	var t = this;
+	var f = function() {
+		cb();
+	}
+	var callbackSet = false;
+
 	for(var i = 0; i < this.cols; i++) {
 		for(var j = this.rows-1; j >= 0; j--) {
 			var curr = this.grid[i][j];
 			if(curr.class === "StationaryBlock" || curr.class === "StationaryClearer") {
-				curr.gravity(this.grid);
+				var oldy = j * this.gridHeight + this.y;
+				if(curr.gravity(this.grid)) {
+					var x = curr.x * this.gridWidth + this.x;
+					var newy = curr.y * this.gridHeight + this.y;
+					var anim;
+					if(!callbackSet) {
+						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 250, "<", f);
+					}
+					else {
+						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 250, "<");
+					}
+					anims.push({a: anim, b: curr});
+				}
 			}
 		}
+	}
+
+	
+	
+	//animate
+	if(anims.length > 0) {
+		this.animating = true;
+		var lastObj = anims[anims.length - 1];
+		var lastBlock = lastObj.b;
+		var lastAnim = lastObj.a;
+		for(var i = 0; i < anims.length - 1; i++) {
+			var obj = anims[i];
+			var b = obj.b;
+			var a = obj.a;
+			b.image.animateWith(lastBlock, lastAnim, a);
+		}
+		lastBlock.image.animate(lastAnim);
+	}
+	else {
+		cb();
 	}
 }
 
@@ -235,13 +274,7 @@ Board.prototype.clearHelper = function(block, color, from) {
 	else {
 		block.clearMark = true;
 		var res = false;
-		/*
-		animations.push({
-			piece: block,
-			anim: "clear"
-		});
-		*/
-		this.score++;
+		this.score += block.pointValue * this.combo;
 		var topSafe = block.y - 1 >= 0;
 		var leftSafe = block.x - 1 >= 0;			
 		var botSafe = block.y + 1 < this.rows;
@@ -295,6 +328,7 @@ Board.prototype.clearMarked = function () {
 		for(var j = 0; j < this.rows; j++) {
 			var b = grid[i][j];
 			if(b.clearMark) {
+				b.image.remove();
 				grid[i][j] = 0;
 			}
 		}
@@ -305,7 +339,6 @@ Board.prototype.clearMarked = function () {
 Board.prototype.clear = function () {
 	var cl = this.clearers;
 	var toRemove = [];
-	var testNumRemoved = 0;
 	for(var i = 0; i < cl.length; i++) {
 		var b = cl[i];
 		var score = this.score;
@@ -315,7 +348,6 @@ Board.prototype.clear = function () {
 			this.score = score;
 		}
 		else {
-			testNumRemoved++;
 			toRemove.push(i);
 		}
 	}
@@ -324,7 +356,7 @@ Board.prototype.clear = function () {
 		cl.splice(toRemove[i], 1);
 	}
 	this.clearers = cl;
-	console.log(testNumRemoved);
+	return toRemove.length !== 0;
 }
 
 Board.prototype.convertFallingPiece = function() {
@@ -332,10 +364,12 @@ Board.prototype.convertFallingPiece = function() {
 	var x = p.direction % 2 !== 0 ? 0 : (p.direction === 0 ? -1 : 1);
 	var y = p.direction % 2 === 0 ? 0 : (p.direction === 1 ? -1 : 1);
 
+	p.image.remove();
+
 	var primePiece = p.components[0].type === "block" ? new StationaryBlock(p.x, p.y, p.components[0].color) : new StationaryClearer(p.x, p.y, p.components[0].color);
 	var secondPiece = p.components[1].type === "block" ? new StationaryBlock(p.x + x, p.y + y, p.components[1].color) : new StationaryClearer(p.x + x, p.y + y, p.components[1].color);
-	//primePiece.draw();
-	//secondPiece.draw();
+	primePiece.draw();
+	secondPiece.draw();
 	if(primePiece.class === "StationaryClearer") {
 		this.clearers.push(primePiece);
 	}
@@ -346,31 +380,67 @@ Board.prototype.convertFallingPiece = function() {
 	this.grid[p.x + x][p.y + y] = secondPiece;
 }
 
+Board.prototype.doCombo = function() {
+	this.combo++;
+	if(this.clear()) {
+		var t = this;
+		var cb = function() {
+			if(t.clearers.length > 0) {
+				t.doCombo();
+			}
+		}
+		this.gravitize(cb);
+	}
+}
+
+Board.prototype.comboStarter = function() {
+	console.log('combo started');
+	var comboStart = this.clear();
+	var t = this;
+	var cb;
+	if(comboStart) {
+		cb = function() {
+			if(t.clearers.length > 0) {
+				t.doCombo();
+			}
+			t.combo = 1;
+			if(t.multi) {
+				t.sendUpdates();
+			}
+			t.fall = new FallingPiece();
+			t.grid[t.fall.x][t.fall.y] = t.fall;
+			t.animating = false;
+			t.lockInTimer = 20;
+		}
+	}
+	else {
+		cb = function() {
+			t.combo = 1;
+			if(t.multi) {
+				t.sendUpdates();
+			}
+			t.fall = new FallingPiece();
+			t.grid[t.fall.x][t.fall.y] = t.fall;
+			t.animating = false;
+			t.lockInTimer = 20;
+		}
+	}
+	this.gravitize(cb);
+}
+
 Board.prototype.pieceLock = function() {
 
+	var t = this;
 	//convert the falling piece to a locked in block
 	this.convertFallingPiece();
 
 	//handle falling piece gravity
 
-	this.gravitize();
-	this.draw(r);
-
-	//handle clearer behavior and combo starting
-
-	this.clear();
-
-	//run through any animations and update the score
-
-	this.gravitize();
-	this.draw(r);
-
-	if(this.multi) {
-		this.sendUpdates();
+	var cb = function() {
+		t.comboStarter();
 	}
 
-	this.fall = new FallingPiece();
-	return true;
+	this.gravitize(cb);
 }
 
 ////////////////////////////

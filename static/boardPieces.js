@@ -56,11 +56,9 @@ FallingPiece.prototype.move = function(dx, dy) {
 		var b2x = this.direction % 2 !== 0 ? newx : (this.direction === 0 ? newx - 1 : newx + 1);
 		var b2y = this.direction % 2 === 0 ? newy : (this.direction === 1 ? newy - 1 : newy + 1);
 		var b2 = grid[b2x][b2y];
-		console.log(b2);
 		if(b2 === this) {
 			b2 = 0;
 		}
-		console.log(b2);
 		if(b === 0 && b2 === 0){
 			grid[this.x][this.y] = 0;
 			this.x = newx;
@@ -148,10 +146,9 @@ StationaryBlock.prototype.gravity = function() {
 			grid[this.x][this.y] = 0;
 			this.y += 1;
 			grid[this.x][this.y] = this;
-			board.draw(r);
 		}
 		board.grid = grid;
-		return true;
+		return this.y;
 	}
 	return false;
 }
@@ -215,10 +212,9 @@ StationaryClearer.prototype.gravity = function() {
 			grid[this.x][this.y] = 0;
 			this.y += 1;
 			grid[this.x][this.y] = this;
-			board.draw(r);
 		}
 		board.grid = grid;
-		return true;
+		return this.y;
 	}
 	return false;
 }
