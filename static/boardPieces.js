@@ -174,6 +174,19 @@ StationaryBlock.prototype.animateClear = function() {
 	return this.pointValue;
 }
 
+StationaryBlock.prototype.updatePointValue = function() {
+	var grid = board.grid;
+	var countAdjacent = 0;
+	for(var i = -1; i < 2; i++) {
+		for(var j = -1; j < 2; j++) {
+			if(grid[this.x + i][this.y + j].color === this.color) {
+				countAdjacent++;
+			}
+		}
+	}
+	this.pointValue = countAdjacent === 9 ? 10 : Math.floor(countAdjacent / 2);
+}
+
 StationaryClearer.prototype.draw = function() {
 	r.setStart();
 	var gridArea = board.gridWidth * board.gridHeight;
@@ -231,4 +244,17 @@ StationaryClearer.prototype.animateClear = function() {
 	var im = this.image;
 	im.animateWith(board.globalAnimationObject, board.globalAnimation, {opacity: 0}, board.clearTime);
 	return this.pointValue;
+}
+
+StationaryClearer.prototype.updatePointValue = function() {
+	var grid = board.grid;
+	var countAdjacent = 0;
+	for(var i = -1; i < 2; i++) {
+		for(var j = -1; j < 2; j++) {
+			if(grid[this.x + i][this.y + j].color === this.color) {
+				countAdjacent++;
+			}
+		}
+	}
+	this.pointValue = countAdjacent === 9 ? 10 : Math.floor(countAdjacent / 2);
 }

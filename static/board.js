@@ -276,7 +276,7 @@ Board.prototype.clearHelper = function(block, color, from) {
 		var res = false;
 		this.score += block.pointValue * this.combo;
 		var topSafe = block.y - 1 >= 0;
-		var leftSafe = block.x - 1 >= 0;			
+		var leftSafe = block.x - 1 >= 0;
 		var botSafe = block.y + 1 < this.rows;
 		var rightSafe = block.x + 1 < this.cols;
 
@@ -343,7 +343,6 @@ Board.prototype.clear = function () {
 		var b = cl[i];
 		var score = this.score;
 		if(!this.clearHelper(b, b.color, -1)) {
-			//console.log("Block at " + b.x + ", " + b.y + " did not clear.");
 			b.clearMark = false;
 			this.score = score;
 		}
@@ -365,6 +364,7 @@ Board.prototype.convertFallingPiece = function() {
 	var y = p.direction % 2 === 0 ? 0 : (p.direction === 1 ? -1 : 1);
 
 	p.image.remove();
+	this.fall = undefined;
 
 	var primePiece = p.components[0].type === "block" ? new StationaryBlock(p.x, p.y, p.components[0].color) : new StationaryClearer(p.x, p.y, p.components[0].color);
 	var secondPiece = p.components[1].type === "block" ? new StationaryBlock(p.x + x, p.y + y, p.components[1].color) : new StationaryClearer(p.x + x, p.y + y, p.components[1].color);
@@ -394,7 +394,6 @@ Board.prototype.doCombo = function() {
 }
 
 Board.prototype.comboStarter = function() {
-	console.log('combo started');
 	var comboStart = this.clear();
 	var t = this;
 	var cb;
@@ -407,9 +406,9 @@ Board.prototype.comboStarter = function() {
 			if(t.multi) {
 				t.sendUpdates();
 			}
-			t.fall = new FallingPiece();
-			t.grid[t.fall.x][t.fall.y] = t.fall;
+			
 			t.animating = false;
+			t.fallTimer = 10;
 			t.lockInTimer = 20;
 		}
 	}
@@ -419,13 +418,23 @@ Board.prototype.comboStarter = function() {
 			if(t.multi) {
 				t.sendUpdates();
 			}
-			t.fall = new FallingPiece();
-			t.grid[t.fall.x][t.fall.y] = t.fall;
 			t.animating = false;
+			t.fallTimer = 10;
 			t.lockInTimer = 20;
 		}
 	}
 	this.gravitize(cb);
+}
+
+Board.prototype.updatePieceValues = function() {
+	for(var i = 0; i < this.cols; i++) {
+		for(var j = 0; j < this.rows; j++) {
+			var b = this.grid[i][j];
+			if(b.class === "StationaryClearer" || b.class === "StationaryBlock") {
+				b.updatePointValue();
+			}
+		}
+	}
 }
 
 Board.prototype.pieceLock = function() {
@@ -438,6 +447,8 @@ Board.prototype.pieceLock = function() {
 
 	var cb = function() {
 		t.comboStarter();
+		t.fall = new FallingPiece();
+		t.grid[t.fall.x][t.fall.y] = t.fall;
 	}
 
 	this.gravitize(cb);
