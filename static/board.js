@@ -111,6 +111,9 @@ Board.prototype.columnBottom = function(col) {
 Board.prototype.fallingPieceOnBottom = function() {
 	var p = this.fall;
 	var grid = this.grid;
+	if(p === undefined) {
+		return false;
+	}
 	if(p.y + 1 >= this.rows || grid[p.x][p.y + 1] !== 0) {
 		return true;
 	}
@@ -229,10 +232,10 @@ Board.prototype.gravitize = function(cb) {
 					var newy = curr.y * this.gridHeight + this.y;
 					var anim;
 					if(!callbackSet) {
-						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 250, "<", f);
+						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 200, "<", f);
 					}
 					else {
-						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 250, "<");
+						anim = Raphael.animation({ transform: "t"+0+","+(newy - oldy) }, 200, "<");
 					}
 					anims.push({a: anim, b: curr});
 				}
