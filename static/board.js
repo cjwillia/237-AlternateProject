@@ -268,11 +268,11 @@ Board.prototype.clearHelper = function(block, color, from) {
 	if(block === 0) {
 		return false;
 	}
-	if(block.clearMark) {
-		return true;
-	}
 	if(block.color !== color) {
 		return false;
+	}
+	if(block.clearMark) {
+		return true;
 	}
 	else {
 		block.clearMark = true;
