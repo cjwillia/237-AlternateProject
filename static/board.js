@@ -21,8 +21,10 @@ function Board(x, y, w, h, r, cl, c, multi) {
 	this.animating = false;
 	this.combo = 1;
 	this.score = 0;
-	this.clearTime = 200;
 	this.gameId = "";
+	this.timeStarted = new Date();
+	this.timerString = "2:00";
+	this.over = false;
 	
 	var a = [];
 	var i = 0;
@@ -65,7 +67,9 @@ Board.prototype.draw = function(r) {
 	r.clear();
 	r.rect(this.x, this.y, this.width, this.height).attr({fill: "black"});
 
-	r.text(this.x - 20, this.y, this.score + "");
+	r.text(this.x - this.width / 8, this.y, "Score").attr("font-size", this.height / 20);
+	r.text(this.x - this.width / 8, this.y + this.height / 20, this.score + "").attr("font-size", this.height / 20);
+	r.text((this.x * 2 + this.width) / 2, this.y - this.height / 10, this.timerString).attr("font-size", this.height / 10);
 
 	for(var i = 0; i < this.cols; i++) {
 		for(var j = 0; j < this.rows; j++) {
@@ -158,14 +162,47 @@ Board.prototype.handleFallingPieceMovement = function() {
 		case "movedown":
 			return this.fall.move(0, 1);
 		case "harddrop":
-			//implement
+			this.hardDrop();
+			break;
 		default:
 			return false;
 	}
 }
 
+Board.prototype.hardDrop = function() {
+	this.pieceLock();
+	this.fallTimer = 10;
+}
+
+Board.prototype.updateTime = function() {
+	var d = Math.floor(((new Date()) - this.timeStarted) / 1000);
+	if(d === 0) {
+		this.timerString = "2:00";
+		return;
+	}
+	if(d === 60) {
+		this.timerString = "1:00";
+		return;
+	}
+	if(d === 120) {
+		this.timerString = "0:00";
+		return;
+	}
+	var s = d < 60 ? "1:" : "0:";
+	var n = 60 - d % 60;
+	s += n < 10 ? "0" + n : n;
+	this.timerString = s;
+}
+
 Board.prototype.tick = function() {
 	var grid = this.grid;
+
+	this.updateTime();
+
+	if(this.timerString === "0:00") {
+		this.gameOver();
+		return;
+	}
 
 	if(this.fallingPieceOnBottom()) {
 		if(this.lockInTimer <= 0) {
@@ -446,6 +483,11 @@ Board.prototype.pieceLock = function() {
 	//convert the falling piece to a locked in block
 	this.convertFallingPiece();
 
+	if(this.grid[2][0] !== 0 || this.grid[3][0] !== 0){
+		this.gameOver();
+		return;
+	}
+
 	//handle falling piece gravity
 
 	var cb = function() {
@@ -455,6 +497,10 @@ Board.prototype.pieceLock = function() {
 	}
 
 	this.gravitize(cb);
+}
+
+Board.prototype.gameOver = function() {
+	this.over = true;
 }
 
 ////////////////////////////

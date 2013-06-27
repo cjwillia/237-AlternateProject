@@ -40,16 +40,17 @@ function drawSimpleBlock(r, x, y, w, h) {
 function showMenubar() {
 	var menubar = $("#menubar");
 	menubar.animate({ top: "0%" });
-	console.log('showing menubar');
 }
 
 function hideMenubar() {
 	var menubar = $("#menubar");
 	menubar.animate({ top: "-22%" });
-	console.log('hiding menubar');
 }
 
 function updateBoard() {
+	if(board.over){
+		return;
+	}
 	if(!board.animating){
 		board.tick();
 		if(!board.animating){
@@ -59,6 +60,10 @@ function updateBoard() {
 }
 
 function runGameLoop() {
+	if(board.over) {
+		console.log("GAME OVER!");
+		return;
+	}
 	updateBoard();
 	gameLoop = setTimeout(runGameLoop, 50);
 }
