@@ -33,9 +33,7 @@ Screen.prototype.menubarLogin = function() {
 	content.append(divider);
 	content.append(submit);
 	submit.click(function(){
-		var username = $('#username_field')[0].value;
-		server.emit('username', { 'username': username });
-		scr.username = username;
+		//chat finctionality one day????
 	});
 }
 

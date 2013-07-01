@@ -25,6 +25,7 @@ function Board(x, y, w, h, r, cl, c, multi) {
 	this.timeStarted = new Date();
 	this.timerString = "2:00";
 	this.over = false;
+	this.disableKeys = false;
 	
 	var a = [];
 	var i = 0;
@@ -170,6 +171,7 @@ Board.prototype.handleFallingPieceMovement = function() {
 }
 
 Board.prototype.hardDrop = function() {
+	this.input = "";
 	this.pieceLock();
 	this.fallTimer = 10;
 }
@@ -478,29 +480,39 @@ Board.prototype.updatePieceValues = function() {
 }
 
 Board.prototype.pieceLock = function() {
-
+	this.disableKeys = true;
 	var t = this;
 	//convert the falling piece to a locked in block
 	this.convertFallingPiece();
-
-	if(this.grid[2][0] !== 0 || this.grid[3][0] !== 0){
-		this.gameOver();
-		return;
-	}
 
 	//handle falling piece gravity
 
 	var cb = function() {
 		t.comboStarter();
+		if(t.grid[2][0].class === "StationaryClearer" || t.grid[2][0].class === "StationaryBlock"
+		 || t.grid[3][0].class === "StationaryClearer" || t.grid[3][0].class === "StationaryBlock") {
+			t.gameOver();
+			return;
+		}
 		t.fall = new FallingPiece();
 		t.grid[t.fall.x][t.fall.y] = t.fall;
+		t.disableKeys = false;
 	}
 
 	this.gravitize(cb);
+	
 }
 
 Board.prototype.gameOver = function() {
 	this.over = true;
+	if(this.multi) {
+		if(this.timerString === "0:00"){
+			server.emit("timeUp");
+		}
+		else {
+			server.emit("lose");
+		}
+	}
 }
 
 ////////////////////////////

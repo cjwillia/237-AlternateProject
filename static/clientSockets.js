@@ -39,7 +39,12 @@ function assignSocketResponses() {
 		scr.liveGame();
 	});
 
-	server.on('test', function() {
-		console.log('test');
-	})
+	server.on('gameover', function(winner) {
+		if(winner.name === scr.username) {
+			//do winning things
+		}
+		else {
+			//do losing things
+		}
+	});
 }

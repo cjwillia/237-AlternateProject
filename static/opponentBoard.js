@@ -35,6 +35,10 @@ OpponentBoard.prototype.draw = function () {
 	r.setStart();
 	r.rect(this.x, this.y, this.width, this.height).attr('fill', 'black');
 
+	//update the score
+	r.text(this.x - this.width / 8, this.y, "Score").attr("font-size", this.height / 20);
+	r.text(this.x - this.width / 8, this.y + this.height / 20, this.score + "").attr("font-size", this.height / 20);
+
 	for(var i = 0; i < this.cols; i++) {
 		for(var j = 0; j < this.rows; j++) {
 			var pieceX = this.x + (i * this.gridWidth) + this.paddingHorizontal;

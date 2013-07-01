@@ -17,6 +17,15 @@ Menu.prototype.generateButtons = function() {
 	var t = this;
 	//generate Go Online
 	var online = function() {
+		function processNameGet (data) {
+			console.log(data);
+			scr.username = data;
+		}
+		$.get(
+			'/me',
+			undefined,
+			processNameGet
+		)
 		t.state = "multiplayer";
 		t.draw();
 	}
@@ -42,6 +51,21 @@ Menu.prototype.generateButtons = function() {
 		}
 	}
 	this.buttons.joinGame = new Button("Join Game", join);
+
+	//generate Main Menu
+	var mainMenu = function() {
+		t.state = "main";
+		t.draw();
+	}
+	this.buttons.mainMenu = new Button("Main Menu", mainMenu);
+	//generate logout
+	var logout = function() {
+		function redirHome() {
+			window.location = '/';
+		}
+		$.post('/logout', undefined, redirHome);
+	}
+	this.buttons.logout = new Button("Logout", logout);
 }
 
 Menu.prototype.draw = function() {
@@ -49,10 +73,10 @@ Menu.prototype.draw = function() {
 	this.generateButtons();
 	switch(this.state){
 		case "main":
-			this.drawMenu([this.buttons.singlePlayer, this.buttons.online]);
+			this.drawMenu([this.buttons.singlePlayer, this.buttons.online, this.buttons.logout]);
 			break;
 		case "multiplayer":
-			this.drawMenu([this.buttons.createGame, this.buttons.joinGame]);
+			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.mainMenu]);
 			break;
 	}
 }
