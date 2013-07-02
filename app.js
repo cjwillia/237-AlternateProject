@@ -43,20 +43,19 @@ app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({ secret: generateKey(10) }));
 
-function openDb(onOpen) {
+function openDb(onOpen, collectionName) {
     client.open(onDbReady);
 
     function onDbReady(error){
         if (error)
             throw error;
-        client.collection('playerInformation', onplayerInformationReady);
+        client.collection('collectionName', onCollectionReady);
     }
 
-    function onplayerInformationReady(error, playerInformation){
+    function onCollectionReady(error, collection){
         if (error)
             throw error;
-
-        onOpen(playerInformation);
+        onOpen(collection);
     }
 }
 
@@ -64,10 +63,38 @@ function closeDb(){
     client.close();
 }
 
+function loadPlayerInfo(name) {
+  function justGimme(collection) {
+    return collection;
+  }
+
+  var c = openDb(justGimme, 'playerInformation');
+  var query = {name: name};
+  var res;
+
+  function onSearch(err, result) {
+    if(err) {
+      var ins = new PlayerInfo(name);
+      c.insert(ins, function(err){
+        if(err)
+          throw err;
+        return;
+      });
+    }
+    else {
+      res = result;
+    }
+  }
+
+  c.findOne(query, onSearch);
+  closeDb();
+  return res;
+}
 
 function PlayerInfo (name) {
   this.name = name;
   this.wins = 0;
+  this.highScore = 0;
   this.totalScore = 0;
 }
 

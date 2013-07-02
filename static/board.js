@@ -402,6 +402,10 @@ Board.prototype.clear = function () {
 
 Board.prototype.convertFallingPiece = function() {
 	var p = this.fall;
+	if(p === undefined) {
+		return;
+	}
+	
 	var x = p.direction % 2 !== 0 ? 0 : (p.direction === 0 ? -1 : 1);
 	var y = p.direction % 2 === 0 ? 0 : (p.direction === 1 ? -1 : 1);
 
@@ -512,6 +516,9 @@ Board.prototype.gameOver = function() {
 		else {
 			server.emit("lose");
 		}
+	}
+	else {
+		menu.soloGameOver();
 	}
 }
 

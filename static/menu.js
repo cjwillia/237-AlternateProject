@@ -118,10 +118,48 @@ Menu.prototype.drawButton = function(x, y, height, button) {
 	var all = r.setFinish();
 	all.click(button.action);
 	all.hover(function() {
-		all.attr('opacity', 0.5);
+		all.attr('opacity', 0.75);
 	},
 	function() {
 		all.attr('opacity', 1);
 	}
 	);
+}
+
+Menu.prototype.soloGameOver = function() {
+	r.rect(0, 0, viewportWidth, viewportHeight).attr({'opacity': 0.3, 'fill' : "#3D2230"});
+	var windowLeft = viewportWidth / 4;
+	var windowTop = viewportHeight / 4;
+	var windowWidth = viewportWidth / 2;
+	var windowHeight = viewportHeight / 2;
+	var buttonLeft = windowLeft + viewportWidth / 8;
+	var buttonTop = windowTop + windowHeight - viewportHeight / 6;
+	var buttonWidth = windowWidth / 2;
+	var buttonHeight = windowHeight / 6;
+	r.rect(windowLeft, windowTop, windowWidth, windowHeight).attr('fill', '#aaa');
+	var button = r.set();
+	button.push(r.rect(buttonLeft, buttonTop, buttonWidth, buttonHeight).attr('fill', this.buttonColor));
+	var buttoncx = buttonLeft + buttonWidth / 2;
+	var buttoncy = buttonTop + buttonHeight / 2;
+	var fontsize = windowHeight / 6;
+	var text1 = "Game Over!";
+	var text2 = "Your Score: " + board.score;
+	var buttonText = "Back";
+	var text1height = windowTop + fontsize;
+	var text2height = text1height + fontsize;
+	r.text(windowWidth, text1height, text1).attr({'font-size': fontsize, 'fill' : '#fff'});
+	r.text(windowWidth, text2height, text2).attr({'font-size': fontsize, 'fill' : '#fff'});
+	button.push(r.text(buttoncx, buttoncy, buttonText).attr({'font-size': fontsize / 2, 'fill' : '#fff'}));
+	button.click(function() {
+		board = undefined;
+		menu.state = 'main';
+		menu.draw();
+	});
+	button.hover(function() {
+		button.attr('opacity', 0.75);
+	},
+	function() {
+		button.attr('opacity', 1);
+	}
+	)
 }
