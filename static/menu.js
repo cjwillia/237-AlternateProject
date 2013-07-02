@@ -18,7 +18,6 @@ Menu.prototype.generateButtons = function() {
 	//generate Go Online
 	var online = function() {
 		function processNameGet (data) {
-			console.log(data);
 			scr.username = data;
 		}
 		$.get(
@@ -34,6 +33,8 @@ Menu.prototype.generateButtons = function() {
 	var create = function() {
 		if(scr.username !== "NONE"){
 			server.emit('newgamerequest', {name: scr.username});
+			t.state = "waiting";
+			t.draw();
 		}
 		else {
 			alert('You need to be signed in to make a game.');
@@ -66,6 +67,13 @@ Menu.prototype.generateButtons = function() {
 		$.post('/logout', undefined, redirHome);
 	}
 	this.buttons.logout = new Button("Logout", logout);
+
+	//generate back to online
+	var backToOnline = function() {
+		server.emit('quit');
+		online();
+	}
+	this.buttons.backToOnline = new Button("Quit", backToOnline)
 }
 
 Menu.prototype.draw = function() {
@@ -78,7 +86,15 @@ Menu.prototype.draw = function() {
 		case "multiplayer":
 			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.mainMenu]);
 			break;
+		case "waiting":
+			this.drawWaiting();
+			this.drawMenu([this.buttons.backToOnline]);
+			break;
 	}
+}
+
+Menu.prototype.drawWaiting = function() {
+	r.text(viewportWidth / 2, viewportHeight / 5, "Waiting for other player...").attr('font-size', viewportHeight / 8);
 }
 
 Menu.prototype.drawMenu = function(buttons) {
@@ -99,5 +115,13 @@ Menu.prototype.drawButton = function(x, y, height, button) {
 	var cx = x + width / 2;
 	var cy = y + height / 2;
 	var text = r.text(cx, cy, button.text).attr({ 'fill' : "#fff", 'font-size' : height/2});
-	r.setFinish().click(button.action);
+	var all = r.setFinish();
+	all.click(button.action);
+	all.hover(function() {
+		all.attr('opacity', 0.5);
+	},
+	function() {
+		all.attr('opacity', 1);
+	}
+	);
 }

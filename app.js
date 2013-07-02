@@ -84,7 +84,6 @@ GameInfoHandler.prototype.add = function(g) {
 
 GameInfoHandler.prototype.remove = function(i) {
   this.gameList.splice(i, 1);
-  this.nextGameIndex--;
 }
 
 function Game(id, player) {
@@ -92,6 +91,7 @@ function Game(id, player) {
   this.players = [player];
   this.status = 0;
   this.winner = undefined;
+  this.loser = undefined;
 }
 
 Game.prototype.addPlayer = function(p) {
@@ -113,6 +113,7 @@ Game.prototype.start = function() {
       t.end();
     });
     p.socket.on('lose', function() {
+      t.loser = p;
       t.end();
     });
   });
@@ -142,6 +143,9 @@ Game.prototype.distributeUpdate = function() {
     setTimeout(f, 200);
   }
   if(this.status === 2) {
+    if(this.loser) {
+      this.winner = this.loser === playerA ? playerB : playerA;
+    }
     socketA.emit('gameover', {'name': this.winner.name});
     socketB.emit('gameover', {'name': this.winner.name});
   }
@@ -193,6 +197,10 @@ io.sockets.on('connection', function(socket) {
     var p = new Player(data.name, data.grid, socket);
     var g = new Game(data.name, p);
     handler.add(g);
+    var n = handler.nextGameIndex;
+    socket.on('quit', function() {
+      handler.remove(n);
+    });
     socket.emit('gamecreated', {'game': g.id});
   });
 

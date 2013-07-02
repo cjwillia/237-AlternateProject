@@ -40,11 +40,12 @@ function assignSocketResponses() {
 	});
 
 	server.on('gameover', function(winner) {
+		board.gameOver();
 		if(winner.name === scr.username) {
-			//do winning things
+			console.log("YOU WIN!");
 		}
 		else {
-			//do losing things
+			console.log("YOU LOSE!");
 		}
 	});
 }

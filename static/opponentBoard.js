@@ -43,7 +43,10 @@ OpponentBoard.prototype.draw = function () {
 		for(var j = 0; j < this.rows; j++) {
 			var pieceX = this.x + (i * this.gridWidth) + this.paddingHorizontal;
 			var pieceY = this.y + (j * this.gridHeight) + this.paddingVertical;
-			if(this.grid[i][j] === 0) {
+			if(this.grid === undefined) {
+				drawEmptySpace(r, pieceX, pieceY, this.pieceWidth, this.pieceHeight);
+			}
+			else if(this.grid[i][j] === 0) {
 				drawEmptySpace(r, pieceX, pieceY, this.pieceWidth, this.pieceHeight);
 			}
 			else {

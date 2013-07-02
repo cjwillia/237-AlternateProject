@@ -86,7 +86,7 @@ Board.prototype.draw = function(r) {
 		}
 	}
 
-	if(this.multi && this.opponentBoard.grid) {
+	if(this.multi) {
 		this.opponentBoard.draw();
 	}
 }
