@@ -92,6 +92,7 @@ function insertPlayerInfo(name, cb) {
         cb(err, null);
       cb(null, ins)
     });
+    closeDb();
   }
 
   openDb(onInfoGet, 'playerInformation');
@@ -109,6 +110,7 @@ function editPlayerInfo(name, attrs, cb) {
         cb(null);
     }
     collection.update(query, updates, {'multi' : true}, onSearch);
+    closeDb();
   }
 
   openDb(onInfoGet, 'playerInformation');
