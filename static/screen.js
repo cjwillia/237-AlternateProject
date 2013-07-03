@@ -4,6 +4,7 @@ function Screen() {
 	this.gameId = undefined;
 	this.gameList = [];
 	this.username = "NONE";
+	this.highScore = undefined;
 	this.selectedGame = "NONE";
 }
 

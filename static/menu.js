@@ -17,13 +17,14 @@ Menu.prototype.generateButtons = function() {
 	var t = this;
 	//generate Go Online
 	var online = function() {
-		function processNameGet (data) {
-			scr.username = data;
+		function processPlayerInfo (data) {
+			scr.username = data.name;
+			scr.highScore = data.highScore;
 		}
 		$.get(
 			'/me',
 			undefined,
-			processNameGet
+			processPlayerInfo
 		)
 		t.state = "multiplayer";
 		t.draw();

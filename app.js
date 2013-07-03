@@ -49,7 +49,7 @@ function openDb(onOpen, collectionName) {
     function onDbReady(error){
         if (error)
             throw error;
-        client.collection('collectionName', onCollectionReady);
+        client.collection(collectionName, onCollectionReady);
     }
 
     function onCollectionReady(error, collection){
@@ -63,32 +63,55 @@ function closeDb(){
     client.close();
 }
 
-function loadPlayerInfo(name) {
-  function justGimme(collection) {
-    return collection;
+function loadPlayerInfo(name, cb) {
+
+  function onInfoGet(collection) {
+    var query = {name: name};
+
+    function onSearch(err, result) {
+      if(err) {
+        cb(err, null);
+      }
+      else {
+        cb(null, result);
+      }
+    }
+    collection.findOne(query, onSearch);
+    closeDb();
   }
 
-  var c = openDb(justGimme, 'playerInformation');
-  var query = {name: name};
-  var res;
+  openDb(onInfoGet, 'playerInformation');
+}
 
-  function onSearch(err, result) {
-    if(err) {
-      var ins = new PlayerInfo(name);
-      c.insert(ins, function(err){
-        if(err)
-          throw err;
-        return;
-      });
-    }
-    else {
-      res = result;
-    }
+function insertPlayerInfo(name, cb) {
+
+  function onInfoGet(collection) {
+    var ins = new PlayerInfo(name);
+    collection.insert(ins, function(err) {
+      if(err)
+        cb(err, null);
+      cb(null, ins)
+    });
   }
 
-  c.findOne(query, onSearch);
-  closeDb();
-  return res;
+  openDb(onInfoGet, 'playerInformation');
+}
+
+function editPlayerInfo(name, attrs, cb) {
+
+  function onInfoGet(collection) {
+    var query = {name: name};
+    var updates = { $set : attrs };
+    function onSearch(err) {
+      if(err)
+        cb(err);
+      else
+        cb(null);
+    }
+    collection.update(query, updates, {'multi' : true}, onSearch);
+  }
+
+  openDb(onInfoGet, 'playerInformation');
 }
 
 function PlayerInfo (name) {
@@ -275,8 +298,14 @@ app.get('/me', function(req, res){
       mongoExpressAuth.getAccount(req, function(err, result){
         if (err)
           res.send(err);
-        else 
-          res.send(result.username);
+        else {
+          loadPlayerInfo(result.username, function(err, data){
+            if(err)
+              res.send(err);
+            else
+              res.send(data);
+          });
+        }
       });
     }
   });
@@ -295,6 +324,37 @@ app.post('/login', function(req, res) {
   });
 });
 
+//GET RID OF THIS LATER
+app.post('/addInfo', function(req, res) {
+  mongoExpressAuth.checkLogin(req, res, function(err) {
+    if(err)
+      res.send(err);
+    else {
+      insertPlayerInfo(req.session.username, function(err, result) {
+        if(err)
+          res.send(err);
+        else
+          res.send(result);
+      });
+    }
+  });
+});
+
+app.post('/playerupdate', function(req, res) {
+  mongoExpressAuth.checkLogin(req, res, function(err) {
+    if(err)
+      res.send(err);
+    else {
+      editPlayerInfo(req.session.username, req.body.updates, function(err) {
+        if(err)
+          res.send(err);
+        else
+          res.send('success');
+      })
+    }
+  })
+});
+
 app.post('/logout', function(req, res) {
   mongoExpressAuth.logout(req, res);
   res.send('peace bro');
@@ -304,7 +364,14 @@ app.post('/register', function(req, res) {
   mongoExpressAuth.register(req, function(err) {
     if(err)
       res.send(err);
-    else
-      res.send('one of us');
+    else {
+      var username = req.body.username;
+      insertPlayerInfo(username, function(err, result) {
+        if(err)
+          res.send(err);
+        else
+          res.send('one of us');
+      });
+    }
   });
 });
