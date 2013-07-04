@@ -48,12 +48,15 @@ function hideMenubar() {
 }
 
 function updateBoard() {
-	if(board.over){
+	if(board.over) {
 		return;
 	}
-	if(!board.animating){
+	if(!board.animating) {
 		board.tick();
-		if(!board.animating){
+		if(!board.animating) {
+			if(board.over) {
+				return;
+			}
 			board.draw(r);
 		}
 	}
@@ -61,7 +64,6 @@ function updateBoard() {
 
 function runGameLoop() {
 	if(board.over) {
-		console.log("GAME OVER!");
 		return;
 	}
 	updateBoard();
@@ -93,7 +95,7 @@ function getViewportHeight() {
 }
 
 
-//I stole these
+//I stole this
 
 //http://james.padolsey.com/javascript/deep-copying-of-objects-and-arrays/
 
@@ -115,5 +117,26 @@ function deepCopy(obj) {
     return obj;
 }
 
+function getPlayerInfo() {
+	function processPlayerInfo (data) {
+		scr.username = data.name;
+		scr.highScore = Number(data.highScore);
+		scr.wins = Number(data.wins);
+		scr.totalScore = Number(data.totalScore);
+	}
+	$.get(
+		'/me',
+		undefined,
+		processPlayerInfo
+	);
+}
 
-//
+function sendInfoUpdate() {
+	var updates = {
+		highScore: scr.highScore,
+		wins: scr.wins,
+		totalScore: scr.totalScore
+	}
+	$.post('/playerupdate', {updates: updates});
+}
+

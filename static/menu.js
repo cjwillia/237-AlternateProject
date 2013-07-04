@@ -17,15 +17,6 @@ Menu.prototype.generateButtons = function() {
 	var t = this;
 	//generate Go Online
 	var online = function() {
-		function processPlayerInfo (data) {
-			scr.username = data.name;
-			scr.highScore = data.highScore;
-		}
-		$.get(
-			'/me',
-			undefined,
-			processPlayerInfo
-		)
 		t.state = "multiplayer";
 		t.draw();
 	}
@@ -74,7 +65,18 @@ Menu.prototype.generateButtons = function() {
 		server.emit('quit');
 		online();
 	}
-	this.buttons.backToOnline = new Button("Quit", backToOnline)
+	this.buttons.backToOnline = new Button("Quit", backToOnline);
+
+	var endGame = function() {
+		if(board.score > scr.highScore) {
+			scr.highScore = board.score;
+		}
+		sendInfoUpdate();
+		board = undefined;
+		menu.state = 'main';
+		menu.draw();
+	}
+	this.buttons.endGame = new Button("End", endGame);
 }
 
 Menu.prototype.draw = function() {
@@ -102,16 +104,16 @@ Menu.prototype.drawMenu = function(buttons) {
 	var n = buttons.length;
 	var regions = n * 2 + 1;
 	var height = viewportHeight / regions;
+	var width = viewportWidth - (this.horizontalPadding * 2);
 	for(var i = 0; i < n; i++) {
 		var x = this.horizontalPadding;
 		var y = height + i*height*2;
-		this.drawButton(x, y, height, buttons[i])
+		this.drawButton(x, y, width, height, buttons[i])
 	}
 }
 
-Menu.prototype.drawButton = function(x, y, height, button) {
+Menu.prototype.drawButton = function(x, y, width, height, button) {
 	r.setStart();
-	var width = viewportWidth - (this.horizontalPadding * 2);
 	var rect = r.rect(x, y, width, height).attr({ 'fill' : this.buttonColor });
 	var cx = x + width / 2;
 	var cy = y + height / 2;
@@ -127,7 +129,7 @@ Menu.prototype.drawButton = function(x, y, height, button) {
 	);
 }
 
-Menu.prototype.soloGameOver = function() {
+Menu.prototype.drawMiniWindow = function(line1, line2) {
 	r.rect(0, 0, viewportWidth, viewportHeight).attr({'opacity': 0.3, 'fill' : "#3D2230"});
 	var windowLeft = viewportWidth / 4;
 	var windowTop = viewportHeight / 4;
@@ -138,29 +140,34 @@ Menu.prototype.soloGameOver = function() {
 	var buttonWidth = windowWidth / 2;
 	var buttonHeight = windowHeight / 6;
 	r.rect(windowLeft, windowTop, windowWidth, windowHeight).attr('fill', '#aaa');
-	var button = r.set();
-	button.push(r.rect(buttonLeft, buttonTop, buttonWidth, buttonHeight).attr('fill', this.buttonColor));
-	var buttoncx = buttonLeft + buttonWidth / 2;
-	var buttoncy = buttonTop + buttonHeight / 2;
 	var fontsize = windowHeight / 6;
-	var text1 = "Game Over!";
-	var text2 = "Your Score: " + board.score;
-	var buttonText = "Back";
 	var text1height = windowTop + fontsize;
 	var text2height = text1height + fontsize;
-	r.text(windowWidth, text1height, text1).attr({'font-size': fontsize, 'fill' : '#fff'});
-	r.text(windowWidth, text2height, text2).attr({'font-size': fontsize, 'fill' : '#fff'});
-	button.push(r.text(buttoncx, buttoncy, buttonText).attr({'font-size': fontsize / 2, 'fill' : '#fff'}));
-	button.click(function() {
-		board = undefined;
-		menu.state = 'main';
-		menu.draw();
-	});
-	button.hover(function() {
-		button.attr('opacity', 0.75);
-	},
-	function() {
-		button.attr('opacity', 1);
+	var textattrs = {'font-size': fontsize, 'fill' : '#fff'};
+	r.text(windowWidth, text1height, line1).attr(textattrs);
+	r.text(windowWidth, text2height, line2).attr(textattrs);
+	this.drawButton(buttonLeft, buttonTop, buttonWidth, buttonHeight, this.buttons.endGame);
+}
+
+Menu.prototype.soloGameOver = function() {
+	var line1 = "Game Over!";
+	var line2 = "Your Score: " + board.score;
+	scr.totalScore += board.score;
+	this.drawMiniWindow(line1, line2);
+}
+
+Menu.prototype.multiGameOver = function(won) {
+	var line1;
+	var line2;
+	scr.totalScore += board.score;
+	if(won) {
+		scr.wins += 1;
+		line1 = "You Win!";
+		line2 = "Win Total: " + scr.wins;
 	}
-	)
+	else {
+		line1 = "You lost :/";
+		line2 = "Lifetime score: " + scr.totalScore;
+	}
+	this.drawMiniWindow(line1, line2)
 }

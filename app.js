@@ -75,9 +75,9 @@ function loadPlayerInfo(name, cb) {
       else {
         cb(null, result);
       }
+      closeDb();
     }
     collection.findOne(query, onSearch);
-    closeDb();
   }
 
   openDb(onInfoGet, 'playerInformation');
@@ -90,9 +90,10 @@ function insertPlayerInfo(name, cb) {
     collection.insert(ins, function(err) {
       if(err)
         cb(err, null);
-      cb(null, ins)
+      cb(null, ins);
+      closeDb();
     });
-    closeDb();
+    
   }
 
   openDb(onInfoGet, 'playerInformation');
@@ -108,9 +109,10 @@ function editPlayerInfo(name, attrs, cb) {
         cb(err);
       else
         cb(null);
+      closeDb();
     }
     collection.update(query, updates, {'multi' : true}, onSearch);
-    closeDb();
+    
   }
 
   openDb(onInfoGet, 'playerInformation');

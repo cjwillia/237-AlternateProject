@@ -5,6 +5,7 @@ function Screen() {
 	this.gameList = [];
 	this.username = "NONE";
 	this.highScore = undefined;
+	this.totalScore = undefined;
 	this.selectedGame = "NONE";
 }
 

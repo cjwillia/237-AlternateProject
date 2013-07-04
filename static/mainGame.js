@@ -77,6 +77,7 @@ window.onload = function () {
 	//scr.menubarLogin();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	menu = new Menu(menuColor);
+	getPlayerInfo();
 	menu.draw();
 };
 

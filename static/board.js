@@ -500,6 +500,7 @@ Board.prototype.pieceLock = function() {
 		}
 		t.fall = new FallingPiece();
 		t.grid[t.fall.x][t.fall.y] = t.fall;
+		t.fall.draw();
 		t.disableKeys = false;
 	}
 
@@ -508,6 +509,7 @@ Board.prototype.pieceLock = function() {
 }
 
 Board.prototype.gameOver = function() {
+	this.draw(r);
 	this.over = true;
 	if(this.multi) {
 		if(this.timerString === "0:00"){

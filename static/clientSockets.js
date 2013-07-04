@@ -42,10 +42,10 @@ function assignSocketResponses() {
 	server.on('gameover', function(winner) {
 		board.gameOver();
 		if(winner.name === scr.username) {
-			console.log("YOU WIN!");
+			menu.multiGameOver(true);
 		}
 		else {
-			console.log("YOU LOSE!");
+			menu.multiGameOver(false);
 		}
 	});
 }
