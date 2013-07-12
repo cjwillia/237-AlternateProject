@@ -1,6 +1,6 @@
 function Menu(c) {
 	this.state = "main";
-	this.horizontalPadding = viewportWidth * 0.1;
+	this.horizontalPadding = viewportWidth < viewportHeight ? viewportWidth * 0.05 : viewportWidth * 0.1;
 	this.buttonColor = c;
 	this.buttons = {};
 }
@@ -10,9 +10,16 @@ function Button(t, f) {
 	this.action = f;
 }
 
+Menu.prototype.updateDisplayParams = function() {
+	this.horizontalPadding = viewportWidth < viewportHeight ? viewportWidth * 0.05 : viewportWidth * 0.1;
+}
+
 Menu.prototype.generateButtons = function() {
 	//generate Play Single Player
-	this.buttons.singlePlayer = new Button("Single Player", scr.singleGame);
+	var singlePlayer = function() {
+		scr.singleGame();
+	}
+	this.buttons.singlePlayer = new Button("Single Player", singlePlayer);
 
 	var t = this;
 	//generate Go Online
@@ -73,6 +80,7 @@ Menu.prototype.generateButtons = function() {
 		}
 		sendInfoUpdate();
 		board = undefined;
+		scr.state = 'menu';
 		menu.state = 'main';
 		menu.draw();
 	}

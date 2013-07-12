@@ -1,17 +1,17 @@
-function Board(x, y, w, h, r, cl, c, multi) {
+function Board(x, y, w, h, rw, cl, c, multi) {
 	
 	this.x = x;
 	this.y = y;
 	this.width = w;
 	this.height = h;
 	this.cols = cl;
-	this.rows = r;
+	this.rows = rw;
 	this.gridWidth = w / cl;
-	this.gridHeight = h / r;
+	this.gridHeight = h / rw;
 	this.pieceWidth = Math.floor((w / cl) * .95);
-	this.pieceHeight = Math.floor((h / r) * .95);
+	this.pieceHeight = Math.floor((h / rw) * .95);
 	this.paddingHorizontal = Math.floor(((w / cl) - this.pieceWidth) / 2);
-	this.paddingVertical = Math.floor(((h / r) - this.pieceHeight) / 2);
+	this.paddingVertical = Math.floor(((h / rw) - this.pieceHeight) / 2);
 	this.colors = c;
 	this.multi = multi;
 	this.lockInTimer = 20;
@@ -48,6 +48,48 @@ function Board(x, y, w, h, r, cl, c, multi) {
 // Prototype Methods
 ////////////////////////////
 
+Board.prototype.updateDisplayParams = function(isLive) {
+	var boardx;
+	var boardy;
+	var boardWidth;
+	var boardHeight;
+	if(isLive) {
+		if(viewportWidth > viewportHeight) {
+			boardx = viewportWidth / 10;
+			boardy = viewportHeight / 5;
+			boardWidth = viewportWidth / 5;
+			boardHeight = viewportHeight * 3 / 5;
+		}
+		else {
+			
+		}
+	}
+	else {
+		if(viewportWidth > viewportHeight) {
+			boardx = viewportWidth * 4 / 10;
+			boardy = viewportHeight / 5;
+			boardWidth = viewportWidth / 5;
+			boardHeight = viewportHeight * 3 / 5;
+		}
+		else {
+			boardx = viewportWidth / 10;
+			boardy = viewportHeight / 10;
+			boardWidth = viewportWidth - boardx * 2;
+			boardHeight = viewportHeight - boardy * 2;
+		}
+	}
+	this.x = boardx;
+	this.y = boardy;
+	this.width = boardWidth;
+	this.height = boardHeight;
+	this.gridWidth = this.width / this.cols;
+	this.gridHeight = this.height / this.rows;
+	this.pieceWidth = Math.floor((this.width / this.cols) * .95);
+	this.pieceHeight = Math.floor((this.height / this.rows) * .95);
+	this.paddingHorizontal = Math.floor(((this.width / this.cols) - this.pieceWidth) / 2);
+	this.paddingVertical = Math.floor(((this.height / this.rows) - this.pieceHeight) / 2);
+}
+
 Board.prototype.init = function() {
 	if(this.multi) {
 		var opponentBoardx = viewportWidth - this.x - this.width;
@@ -65,12 +107,25 @@ Board.prototype.init = function() {
 
 Board.prototype.draw = function(r) {
 	var grid = this.grid;
+	if(this.animating) {
+		return;
+	}
 	r.clear();
+	
 	r.rect(this.x, this.y, this.width, this.height).attr({fill: "black"});
 
-	r.text(this.x - this.width / 8, this.y, "Score").attr("font-size", this.height / 20);
-	r.text(this.x - this.width / 8, this.y + this.height / 20, this.score + "").attr("font-size", this.height / 20);
-	r.text((this.x * 2 + this.width) / 2, this.y - this.height / 10, this.timerString).attr("font-size", this.height / 10);
+	if(viewportWidth > viewportHeight) {
+		r.text(this.x - this.width / 8, this.y, "Score").attr("font-size", this.height / 20);
+		r.text(this.x - this.width / 8, this.y + this.height / 20, this.score + "").attr("font-size", this.height / 20);
+		r.text((this.x * 2 + this.width) / 2, this.y - this.height / 10, this.timerString).attr("font-size", this.height / 10);
+		if(this.multi) {
+			this.opponentBoard.draw();
+		}
+	}
+	else {
+		r.text(this.x + this.width / 4, this.y - this.height / 20, this.score + "").attr("font-size", this.height / 20);
+		r.text(this.x + this.width * 3 / 4, this.y - this.height / 20, this.timerString).attr("font-size", this.height / 20);
+	}
 
 	for(var i = 0; i < this.cols; i++) {
 		for(var j = 0; j < this.rows; j++) {
@@ -84,10 +139,6 @@ Board.prototype.draw = function(r) {
 				grid[i][j].draw();
 			}
 		}
-	}
-
-	if(this.multi) {
-		this.opponentBoard.draw();
 	}
 }
 
@@ -123,7 +174,7 @@ Board.prototype.fallingPieceOnBottom = function() {
 		return true;
 	}
 	if(p.direction === 3) {
-		if(p.y + 2 >= this.rows || grid[p.x][p.y + 2] !== 0){
+		if(p.y + 2 >= this.rows || grid[p.x][p.y + 2] !== 0) {
 			return true;
 		}
 		else {
@@ -200,6 +251,10 @@ Board.prototype.tick = function() {
 	var grid = this.grid;
 
 	this.updateTime();
+
+	if(this.animating) {
+		return;
+	}
 
 	if(this.timerString === "0:00") {
 		this.gameOver();
@@ -400,6 +455,24 @@ Board.prototype.clear = function () {
 	return toRemove.length !== 0;
 }
 
+Board.prototype.animateBigClear = function(score) {
+	//useless because of needing to clear paper.
+	var pointfontsize = this.height / 8;
+	var textfontsize = pointfontsize / 4;
+	var xcenter = this.x + this.width;
+	var line1y = this.y + this.height / 2;
+	var line2y = line1y + pointfontsize;
+	var ty = this.height / 4;
+	r.setStart();
+	r.text(xcenter, line1y, score + "").attr({ 'font-size' : pointfontsize, 'fill' : '#fff'});
+	r.text(xcenter, line2y, "point clear!").attr({ 'font-size' : textfontsize, 'fill' : '#fff'});
+	var all = r.setFinish();
+	all.animate({opacity: 0, transform: 't'+0+','+ty}, 4000, "<>", function() {
+		all.remove();
+	});
+	return all;
+}
+
 Board.prototype.convertFallingPiece = function() {
 	var p = this.fall;
 	if(p === undefined) {
@@ -454,8 +527,6 @@ Board.prototype.comboStarter = function() {
 			}
 			
 			t.animating = false;
-			t.fallTimer = 10;
-			t.lockInTimer = 20;
 		}
 	}
 	else {
@@ -465,8 +536,6 @@ Board.prototype.comboStarter = function() {
 				t.sendUpdates();
 			}
 			t.animating = false;
-			t.fallTimer = 10;
-			t.lockInTimer = 20;
 		}
 	}
 	this.gravitize(cb);
@@ -501,6 +570,8 @@ Board.prototype.pieceLock = function() {
 		t.fall = new FallingPiece();
 		t.grid[t.fall.x][t.fall.y] = t.fall;
 		t.fall.draw();
+		t.fallTimer = 10;
+		t.lockInTimer = 20;
 		t.disableKeys = false;
 	}
 

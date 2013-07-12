@@ -132,10 +132,6 @@ FallingPiece.prototype.draw = function() {
 	this.image = r.setFinish();
 }
 
-FallingPiece.prototype.animateHardDrop = function() {
-	//implement
-}
-
 StationaryBlock.prototype.gravity = function() {
 	var grid = board.grid;
 	if(this.y + 1 === board.rows){

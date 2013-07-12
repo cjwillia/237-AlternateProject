@@ -74,10 +74,14 @@ window.onload = function () {
 	viewportWidth = getViewportWidth();
 	viewportHeight = getViewportHeight();
 	userControl();
-	//scr.menubarLogin();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	menu = new Menu(menuColor);
 	getPlayerInfo();
 	menu.draw();
 };
 
+window.onresize = function() {
+	viewportWidth = getViewportWidth();
+	viewportHeight = getViewportHeight();
+	adjustDisplay();
+}

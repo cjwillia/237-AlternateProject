@@ -94,6 +94,52 @@ function getViewportHeight() {
 	}
 }
 
+function isOrientationPortrait() {
+	return viewportWidth < viewportHeight;
+}
+
+function isOrientationLandscape() {
+	return viewportHeight < viewportWidth;
+}
+
+function isMobile() {
+	var mobileRegex = /Android|WebOS|iPhone|iPad|iPod|Blackberry|Windows Phone/i
+	if(navigator.userAgent.match(mobileRegex)) {
+		return true;
+	}
+	return false;
+}
+
+function adjustDisplay() {
+	/*
+	try {
+		r.remove();
+		r = Raphael('main', viewportWidth, viewportHeight);
+	}
+	catch(e) {
+		alert("please do not resize the window.");
+		r = Raphael('main', viewportWidth, viewportHeight);
+	}
+	*/
+
+	r.setSize(viewportWidth, viewportHeight);
+	menu.updateDisplayParams();
+	
+	switch(scr.state) {
+		case "singleGame":
+			board.updateDisplayParams(false);
+			board.draw(r);
+			break;
+		case "liveGame":
+			board.updateDisplayParams(true);
+			board.draw(r);
+			break;
+		case "menu":
+			menu.draw();
+			break;
+	}
+}
+
 
 //I stole this
 
