@@ -68,6 +68,7 @@ function userControl() {
 }
 
 window.onload = function () {
+	getPlayerInfo();
 	server = io.connect('http://localhost:8888');
 	assignSocketResponses();
 	scr = new Screen();
@@ -76,7 +77,7 @@ window.onload = function () {
 	userControl();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	menu = new Menu(menuColor);
-	getPlayerInfo();
+	
 	menu.draw();
 };
 

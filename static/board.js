@@ -1,3 +1,5 @@
+//TODO: Touch Buttons
+
 function Board(x, y, w, h, rw, cl, c, multi) {
 	
 	this.x = x;
@@ -21,7 +23,6 @@ function Board(x, y, w, h, rw, cl, c, multi) {
 	this.animating = false;
 	this.combo = 1;
 	this.score = 0;
-	this.gameId = "";
 	this.timeStarted = new Date();
 	this.timerString = "2:00";
 	this.over = false;
@@ -96,10 +97,12 @@ Board.prototype.init = function() {
 		this.opponentBoard = new OpponentBoard(opponentBoardx, this.y, this.width, this.height, this.rows, this.cols, this.gridWidth, this.gridHeight, this.paddingHorizontal, this.paddingVertical);
 		this.fall = new FallingPiece();
 		this.grid[this.fall.x][this.fall.y] = this.fall;
+		this.updateDisplayParams(true);
 	}
 	else {
 		this.fall = new FallingPiece();
 		this.grid[this.fall.x][this.fall.y] = this.fall;
+		this.updateDisplayParams(false);
 	}
 	runGameLoop();
 	board.draw(r);

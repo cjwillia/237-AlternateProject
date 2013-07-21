@@ -6,6 +6,8 @@ var express = require('express')
   , mongoExpressAuth = require('mongo-express-auth');
 
 var handler = new GameInfoHandler();
+var playerList = [];
+var gameList = [];
 
 //DB stuff
 
@@ -121,8 +123,18 @@ function editPlayerInfo(name, attrs, cb) {
 function PlayerInfo (name) {
   this.name = name;
   this.wins = 0;
+  this.losses = 0;
+  this.winRatio = 0;
+  this.gamesPlayed = 0;
   this.highScore = 0;
   this.totalScore = 0;
+  this.scoresThisWeek = [];
+  this.scoreDeltasThisWeek = [];
+  this.totalBlocksCleared = 0;
+  this.redBlocksCleared = 0;
+  this.blueBlocksCleared = 0;
+  this.greenBlocksCleared = 0;
+  this.yellowBlocksCleared = 0;
 }
 
 //socket stuff
@@ -140,8 +152,9 @@ GameInfoHandler.prototype.remove = function(i) {
   this.gameList.splice(i, 1);
 }
 
-function Game(id, player) {
-	this.id = id;
+function Game(index, player) {
+	this.index = index;
+  this.name = player.name + "'s game";
   this.players = [player];
   this.status = 0;
   this.winner = undefined;
@@ -153,14 +166,25 @@ Game.prototype.addPlayer = function(p) {
     this.players.push(p);
     if(this.players.length === 2) {
       this.start();
+      return 'gamestarted!';
     }
+    return 'game joined';
   }
+  return 'error';
+}
+
+Game.prototype.removePlayer = function(p) {
+  var i = this.players.indexOf(p);
+  if(i >= 0) {
+    this.players.splice(i, 1);
+    return true;
+  }
+  return false;
 }
 
 Game.prototype.start = function() {
   var t = this;
   this.status = 1;
-  handler.nextGameIndex++;
   this.players.forEach(function(p) {
     p.socket.emit('gamestarted');
     p.socket.on('timeUp', function() {
@@ -202,18 +226,18 @@ Game.prototype.distributeUpdate = function() {
     }
     socketA.emit('gameover', {'name': this.winner.name});
     socketB.emit('gameover', {'name': this.winner.name});
+    gameList.splice(this.index, 1);
   }
 }
 
-function Player(name, grid, socket) {
+function Player(name, socket) {
 	this.name = name;
-	this.grid = grid;
+	this.grid = undefined;
   this.socket = socket;
 	this.score = 0;
   var t = this;
   this.socket.on('gridupdate', function(data) {
     t.grid = data.grid;
-    socket.emit('test');
   });
   this.socket.on('scoreupdate', function(data) {
     t.score = data.score;
@@ -229,27 +253,18 @@ Player.prototype.getScore = function() {
 }
 
 io.sockets.on('connection', function(socket) {
-  socket.emit('connected');
+  socket.emit('usernamerequest');
+  var player;
+  var playerListIndex;
 
   socket.on('username', function(data){
-    socket.set('nickname', data.username, function() {
-      var send = [];
-      handler.gameList.forEach(function(g){
-        var o = {};
-        o.players = [];
-        g.players.forEach(function(p, i){
-          o.players[i] = p.name;
-        });
-        o.id = g.id;
-        send.push(o);
-      });
-      socket.emit('ready', {'gamelist': send});
-    });
+    player = new Player(data.username, socket);
+    playerListIndex = playerList.push(player) - 1;
+    socket.emit('playerregistered', {index: playerListIndex});
   });
 
   socket.on('newgamerequest', function(data) {
-    var p = new Player(data.name, data.grid, socket);
-    var g = new Game(data.name, p);
+    var g = new Game(data.name, player);
     handler.add(g);
     var n = handler.nextGameIndex;
     socket.on('quit', function() {
@@ -261,8 +276,7 @@ io.sockets.on('connection', function(socket) {
   socket.on('joinrequest', function(data) {
     var game = handler.gameList[handler.nextGameIndex];
     if(game) {
-      var p = new Player(data.name, data.grid, socket);
-      game.addPlayer(p);
+      game.addPlayer(player);
       socket.emit('gamejoinsuccess', {'game': game.id});
     }
     else {
@@ -279,11 +293,13 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('disconnect', function() {
-
+    playerList.splice(playerListIndex, 1);
   });
 });
 
-//routes
+/////////////////////
+// Routes
+/////////////////////
 
 app.get('/', function (req, res) {
   mongoExpressAuth.checkLogin(req, res, function(err){
@@ -294,7 +310,7 @@ app.get('/', function (req, res) {
   });
 });
 
-app.get('/me', function(req, res){
+app.get('/me', function(req, res) {
   mongoExpressAuth.checkLogin(req, res, function(err){
     if (err)
       res.send(err);
@@ -317,6 +333,94 @@ app.get('/me', function(req, res){
 
 app.get('/static/:file', function(req, res) {
   res.sendfile(__dirname + '/static/' + req.params.file);
+});
+
+app.get('/:user/profile', function(req, res) {
+  res.sendfile(__dirname + '/static/profileView.html');
+});
+
+app.get('/api/playerInfo/get/:user', function(req, res) {
+  loadPlayerInfo(req.params.user, function(err, data) {
+    if(err)
+      res.send(err);
+    else
+      res.send(data);
+  })
+});
+
+app.get('/gamesList', function(req, res) {
+  var responseList = [];
+  gameList.forEach(function(e) {
+    var ins = {};
+    ins.index = e.index;
+    ins.name = e.name;
+    ins.numPlayers = e.players.length;
+    responseList.push(ins);
+  });
+  res.send(responseList);
+});
+
+app.get('/playerList', function(req, res) {
+  var responseList = [];
+  playerList.forEach(function(e, i) {
+    var ins = {};
+    ins.name = e.name;
+    ins.index = i;
+    responseList.push(ins);
+  });
+  res.send(responseList);
+});
+
+app.post('/createGame', function(req, res) {
+  mongoExpressAuth.checkLogin(req, res, function(err){
+    if(err)
+      res.send(err);
+    else {
+      var player = playerList[req.body.index];
+      var game = new Game(gameList.length, player);
+      gameList.push(game);
+      res.send({index: gameList.length - 1});
+    }
+  });
+});
+
+app.post('/joinGame', function(req, res) {
+  mongoExpressAuth.checkLogin(req, res, function(err) {
+    if(err)
+      res.send(err);
+    else {
+      var player = playerList[req.body.playerIndex];
+      var game = gameList[req.body.gameIndex];
+      if(game) {
+        var response = game.addPlayer(player);
+        res.send(response);
+      }
+      else
+        res.send('gameIndexError');
+    }
+  });
+});
+
+app.post('/leaveGame', function(req, res) {
+  mongoExpressAuth.checkLogin(req, res, function(err) {
+    if(err)
+      res.send(err);
+    else {
+      var player = playerList[req.body.playerIndex];
+      var game = gameList[req.body.gameIndex];
+      if(game) {
+        if(game.removePlayer(player)) {
+          res.send('success');
+        }
+        else {
+          res.send('leavingError');
+        }
+      }
+      else {
+        res.send('gameIndexError');
+      }
+    }
+  });
 });
 
 app.post('/login', function(req, res) {

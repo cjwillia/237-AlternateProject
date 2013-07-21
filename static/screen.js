@@ -1,18 +1,30 @@
 function Screen() {
 	this.state = "menu";
 	this.allowTyping = false;
+	this.playerIndex = undefined;
 	this.gameId = undefined;
 	this.gameList = [];
-	this.username = "NONE";
-	this.highScore = undefined;
-	this.totalScore = undefined;
 	this.selectedGame = "NONE";
+	this.playerInfo = {
+		username: "NONE",
+		highScore: undefined,
+		totalScore: undefined,
+		wins: 0,
+		losses: 0,
+		winRatio: 0,
+		gamesPlayed: 0,
+		scoresThisWeek: [],
+		scoreDeltasThisWeek: [],
+		totalBlocksCleared: 0,
+		redBlocksCleared: 0,
+		blueBlocksCleared: 0,
+		greenBlocksCleared: 0,
+		yellowBlocksCleared: 0
+	};
 }
 
 Screen.prototype.parseCommand = function() {
-	var inp = $("#textbar")[0].value;
-	//temporary functionality
-	this.username = inp;
+	//this may never be implemented! :D
 }
 
 Screen.prototype.menubarLogin = function() {

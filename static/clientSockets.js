@@ -1,6 +1,11 @@
 
 function assignSocketResponses() {
-	server.on('connected', function () {
+	server.on('usernamerequest', function() {
+		server.emit('username', {username: scr.playerInfo.username});
+	});
+
+	server.on('playerregistered', function(data) {
+		scr.playerIndex = data.index;
 	});
 
 	server.on('gamecreated', function(data) {
@@ -41,7 +46,7 @@ function assignSocketResponses() {
 
 	server.on('gameover', function(winner) {
 		board.gameOver();
-		if(winner.name === scr.username) {
+		if(winner.name === scr.playerInfo.username) {
 			menu.multiGameOver(true);
 		}
 		else {

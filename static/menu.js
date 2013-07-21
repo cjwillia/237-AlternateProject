@@ -1,7 +1,10 @@
+//TODO: make multiplayer workflow easier
+
 function Menu(c) {
 	this.state = "main";
 	this.horizontalPadding = viewportWidth < viewportHeight ? viewportWidth * 0.05 : viewportWidth * 0.1;
 	this.buttonColor = c;
+	this.gameListPage = 0;
 	this.buttons = {};
 }
 
@@ -30,25 +33,16 @@ Menu.prototype.generateButtons = function() {
 	this.buttons.online = new Button("Online", online);
 	//generate Create Game
 	var create = function() {
-		if(scr.username !== "NONE"){
-			server.emit('newgamerequest', {name: scr.username});
-			t.state = "waiting";
-			t.draw();
-		}
-		else {
-			alert('You need to be signed in to make a game.');
-		}
+		createGame();
+		t.state = "waiting";
+		t.draw();
 	}
 	this.buttons.createGame = new Button("Create Game", create);
 
 	//generate Join Game
 	var join = function() {
-		if(scr.username !== "NONE") {
-			server.emit('joinrequest', {name : scr.username});
-		}
-		else {
-			alert('You need to be signed in to join a game.');
-		}
+		t.state = "gameList";
+		t.draw(0);
 	}
 	this.buttons.joinGame = new Button("Join Game", join);
 
@@ -69,7 +63,7 @@ Menu.prototype.generateButtons = function() {
 
 	//generate back to online
 	var backToOnline = function() {
-		server.emit('quit');
+		leaveGame(scr.gameId);
 		online();
 	}
 	this.buttons.backToOnline = new Button("Quit", backToOnline);
@@ -81,13 +75,13 @@ Menu.prototype.generateButtons = function() {
 		sendInfoUpdate();
 		board = undefined;
 		scr.state = 'menu';
-		menu.state = 'main';
-		menu.draw();
+		t.state = 'main';
+		t.draw();
 	}
 	this.buttons.endGame = new Button("End", endGame);
 }
 
-Menu.prototype.draw = function() {
+Menu.prototype.draw = function(page) {
 	r.clear();
 	this.generateButtons();
 	switch(this.state){
@@ -101,6 +95,119 @@ Menu.prototype.draw = function() {
 			this.drawWaiting();
 			this.drawMenu([this.buttons.backToOnline]);
 			break;
+		case "gameList":
+			var t = this;
+			getGameList(function(list) {
+				t.drawGameList(list, page);
+			})
+			break;
+		case "soloGameOver":
+			this.redrawSoloGameOver();
+			break;
+		case "multiGameWon":
+			this.redrawMultiGameOver(true);
+			break;
+		case "multiGameLost":
+			this.redrawMultiGameOver(false);
+			break;
+	}
+}
+
+Menu.prototype.drawGameListElementBox = function (x, y, w, h, e) {
+	var container = r.rect(x, y, w, h).attr('fill', '#aaa');
+	container.hover(function() {
+		container.attr('opacity', 0.75);
+	},
+	function() {
+		container.attr('opacity', 1);
+	});
+	container.click(function() {
+		joinGame(e.index);
+	});
+	var s = e.name;
+	var text = adjustTextSize(s, w, h / 2);
+	text.attr({x: x + w / 2, y: y + h / 2, fill: '#fff'});
+
+}
+
+Menu.prototype.drawGameListControls = function(space, y, height, page, lastPage) {
+	var t = this;
+	var buttonWidth = (viewportWidth - space * 4) / 3;
+	var cy = y + height / 2;
+
+	var backButton = r.set();
+	var backX = space;
+	var backCX = backX + buttonWidth / 2;
+	backButton.push(r.rect(backX, y, buttonWidth, height).attr('fill', this.buttonColor));
+	backButton.push(adjustTextSize('Back', buttonWidth, height / 2).attr({x: backCX, y: cy, fill: '#fff'}));
+	backButton.click(function() {
+		t.state = "multiplayer";
+		t.draw();
+	});
+
+	var prevButton = r.set();
+	var prevX = space + buttonWidth + space;
+	var prevCX = prevX + buttonWidth / 2;
+	var prevOpacity = page === 0 ? 0.25 : 1;
+	prevButton.push(r.rect(prevX, y, buttonWidth, height).attr({fill: this.buttonColor, opacity : prevOpacity}));
+	prevButton.push(adjustTextSize('Prev Page', buttonWidth, height / 2).attr({x:prevCX, y: cy, fill: '#fff'}));
+	if(page !== 0) {
+		prevButton.click(function() {
+			getGameList(function(list) {
+				t.drawGameList(list, page-1);
+			});
+		});
+	}
+
+	var nextButton = r.set();
+	var nextX = space + (buttonWidth + space) * 2;
+	var nextCX = nextX + buttonWidth / 2;
+	var nextOpacity = lastPage ? 0.25 : 1;
+	nextButton.push(r.rect(nextX, y, buttonWidth, height).attr({fill: this.buttonColor, opacity : nextOpacity}));
+	nextButton.push(adjustTextSize('Next Page', buttonWidth, height / 2).attr({x:nextCX, y: cy, fill: '#fff'}));
+	if(!lastPage) {
+		nextButton.click(function() {
+			t.drawGameList(list, page+1);
+		});
+	}
+}
+
+Menu.prototype.drawGameList = function(list, page) {
+	if(viewportHeight < viewportWidth) {
+		var width = 200;
+		var height = 150;
+		var minPadding = 10;
+		var cols = Math.floor(viewportWidth / (width + minPadding));
+		var rows = Math.floor(viewportHeight / (height + minPadding)) - 1;
+		var total = cols * rows;
+		var startIndex = 0 + (page * total);
+		var endIndex = startIndex + total;
+		var workingList = list.slice(startIndex, endIndex);
+		var horizontalSpacing = (viewportWidth - cols * 200) / (cols + 2);
+		var verticalSpacing = (viewportHeight - (rows+1) * 150) / (rows + 3);
+		var workingListIndex = 0;
+		var lastPage = false;
+		var firstPage = page === 0;
+		for(var i = 0; i < cols; i++) {
+			for(var j = 0; j < rows; j++) {
+				var listElement = workingList[workingListIndex];
+				if(listElement) {
+					var x = horizontalSpacing + (horizontalSpacing * i + width * i);
+					var y = verticalSpacing + (verticalSpacing * j + height * j);
+					this.drawGameListElementBox(x, y, width, height, listElement);
+					workingListIndex++;
+				}
+				else {
+					lastPage = true;
+				}
+			}
+		}
+		console.log(rows);
+		var lastrow = verticalSpacing + height / 2 + (verticalSpacing + (height)) * (rows);
+		this.drawGameListControls(horizontalSpacing * 3, lastrow, height / 2, page, lastPage);
+	}
+	else {
+		//gfy
 	}
 }
 
@@ -148,7 +255,7 @@ Menu.prototype.drawMiniWindow = function(line1, line2) {
 	var buttonWidth = windowWidth / 2;
 	var buttonHeight = windowHeight / 6;
 	r.rect(windowLeft, windowTop, windowWidth, windowHeight).attr('fill', '#aaa');
-	var fontsize = windowHeight / 6;
+	var fontsize = viewportWidth > viewportHeight ? windowHeight / 6 : windowHeight / 10;
 	var text1height = windowTop + fontsize;
 	var text2height = text1height + fontsize;
 	var textattrs = {'font-size': fontsize, 'fill' : '#fff'};
@@ -158,24 +265,50 @@ Menu.prototype.drawMiniWindow = function(line1, line2) {
 }
 
 Menu.prototype.soloGameOver = function() {
+	this.state = "soloGameOver";
 	var line1 = "Game Over!";
 	var line2 = "Your Score: " + board.score;
-	scr.totalScore += board.score;
+	scr.playerInfo.totalScore += board.score;
+	scr.playerInfo.gamesPlayed++;
+	this.drawMiniWindow(line1, line2);
+}
+
+Menu.prototype.redrawSoloGameOver = function() {
+	var line1 = "Game Over!";
+	var line2 = "Your Score: " + board.score;
 	this.drawMiniWindow(line1, line2);
 }
 
 Menu.prototype.multiGameOver = function(won) {
 	var line1;
 	var line2;
-	scr.totalScore += board.score;
+	scr.playerInfo.totalScore += board.score;
 	if(won) {
-		scr.wins += 1;
+		scr.playerInfo.wins += 1;
 		line1 = "You Win!";
-		line2 = "Win Total: " + scr.wins;
+		line2 = "Win Total: " + scr.playerInfo.wins;
+		this.state = "multiGameWon";
+	}
+	else {
+		scr.playerInfo.losses += 1;
+		line1 = "You lost :/";
+		line2 = "Lifetime score: " + scr.playerInfo.totalScore;
+		this.state = "multiGameLost";
+	}
+	scr.playerInfo.winRatio = scr.playerInfo.wins / scr.playerInfo.losses;
+	this.drawMiniWindow(line1, line2)
+}
+
+Menu.prototype.redrawMultiGameOver = function(won) {
+	var line1;
+	var line2;
+	if(won) {
+		line1 = "You Win!";
+		line2 = "Win Total: " + scr.playerInfo.wins;
 	}
 	else {
 		line1 = "You lost :/";
-		line2 = "Lifetime score: " + scr.totalScore;
+		line2 = "Lifetime score: " + scr.playerInfo.totalScore;
 	}
-	this.drawMiniWindow(line1, line2)
+	this.drawMiniWindow(line1, line2);
 }

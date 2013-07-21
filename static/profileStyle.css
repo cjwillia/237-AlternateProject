@@ -1,0 +1,62 @@
+body {
+	background-color: #A30586;
+	height: 100%;
+}
+
+.contentBox {
+	border-radius: 2em;
+	padding: 2em;
+}
+
+h1 {
+	text-align: center;
+	font-family: Consolas, monaco, monospace;
+}
+
+p {
+	text-align: center;
+	font-family: Consolas, monaco, monospace;
+}
+
+#main {
+	background-color: #A16F80;
+}
+
+#swapbuttons {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	text-align: center;
+}
+
+#swapbuttons li {
+	display: inline;
+	padding: 0.5em 0.5em;
+	background-color: #6FA190;
+}
+
+#swapbuttons li.selected {
+	background-color: #8DCCB6;
+}
+
+#swapbuttons li:hover {
+	background-color: #8DCCB6;
+}
+
+#swapbuttons li span {
+	padding: .2em 1em;
+	color: #fff;
+	
+}
+
+#scoreInfoContainer {
+	
+}
+
+#multiInfoContainer {
+	display: none;
+}
+
+#miscInfoContainer {
+	display: none;
+}

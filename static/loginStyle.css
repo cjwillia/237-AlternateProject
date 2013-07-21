@@ -52,8 +52,23 @@ table {
 body {
 	color: #fff;
 	background-color: #A30586;
+	margin: 8px;
+	height: 100%;
+}
+
+h1 {
+	font-family: Consolas, monaco, monospace;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+#container {
+	border-radius: 2em;
+	padding: 2em;
+	background-color: #A16F80;
 }
 
 div {
 	padding: 1em;
+	text-align: center;
 }

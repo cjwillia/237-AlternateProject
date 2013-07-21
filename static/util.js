@@ -129,10 +129,16 @@ function adjustDisplay() {
 		case "singleGame":
 			board.updateDisplayParams(false);
 			board.draw(r);
+			if(board.over) {
+				menu.draw();
+			}
 			break;
 		case "liveGame":
 			board.updateDisplayParams(true);
 			board.draw(r);
+			if(board.over) {
+				menu.draw();
+			}
 			break;
 		case "menu":
 			menu.draw();
@@ -163,12 +169,14 @@ function deepCopy(obj) {
     return obj;
 }
 
+
+//TODO: add other playerInfo parameters
 function getPlayerInfo() {
 	function processPlayerInfo (data) {
-		scr.username = data.name;
-		scr.highScore = Number(data.highScore);
-		scr.wins = Number(data.wins);
-		scr.totalScore = Number(data.totalScore);
+		scr.playerInfo.username = data.name;
+		scr.playerInfo.highScore = Number(data.highScore);
+		scr.playerInfo.wins = Number(data.wins);
+		scr.playerInfo.totalScore = Number(data.totalScore);
 	}
 	$.get(
 		'/me',
@@ -179,10 +187,42 @@ function getPlayerInfo() {
 
 function sendInfoUpdate() {
 	var updates = {
-		highScore: scr.highScore,
-		wins: scr.wins,
-		totalScore: scr.totalScore
+		highScore: scr.playerInfo.highScore,
+		wins: scr.playerInfo.wins,
+		totalScore: scr.playerInfo.totalScore
 	}
 	$.post('/playerupdate', {updates: updates});
 }
 
+function getPlayerList(onGet) {
+	$.get('/playerList', undefined, onGet);
+}
+
+function getGameList(onGet) {
+	$.get('/gamesList', undefined, onGet);
+}
+
+function createGame() {
+	function onCreate(data) {
+		scr.gameId = data.index;
+	}
+	$.post('/createGame', {index: scr.playerIndex}, onCreate);
+}
+
+function joinGame(index) {
+	$.post('/joinGame', {playerIndex: scr.playerIndex, gameIndex: index}, menu.drawPleaseWait);
+}
+
+function leaveGame(index) {
+	$.post('/leaveGame', {playerIndex: scr.playerIndex, gameIndex: index});
+}
+
+function adjustTextSize(string, containerWidth, startSize) {
+	var size = startSize;
+	var text = r.text(-1000, -1000, string).attr('font-size', size);
+	while(text.getBBox().width > containerWidth) {
+		size -= 1;
+		text.attr('font-size', size);
+	}
+	return text;
+}
