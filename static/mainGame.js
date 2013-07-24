@@ -65,6 +65,18 @@ function userControl() {
 			}
 		}
 	};
+	$('#leftButton').click(function() {
+		board.input = "moveleft";
+	});
+	$('#rightButton').click(function() {
+		board.input = "moveright";
+	});
+	$('#rotateButton').click(function() {
+		board.input = "rotatecounter";
+	});
+	$('#downButton').click(function() {
+		board.input = "movedown";
+	});
 }
 
 window.onload = function () {
@@ -77,7 +89,7 @@ window.onload = function () {
 	userControl();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	menu = new Menu(menuColor);
-	
+	adjustDisplay();
 	menu.draw();
 };
 

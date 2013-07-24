@@ -91,3 +91,15 @@ body {
 	z-index: 1;
 	background-color: #A30586;
 }
+
+#mobileControls {
+	display: none;
+	width: 100%;
+	background-color: #aaa;
+	text-align: center;
+}
+
+.mobileControl {
+	padding: 2px 2px;
+	display: inline;
+}

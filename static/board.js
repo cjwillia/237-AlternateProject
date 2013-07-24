@@ -43,6 +43,7 @@ function Board(x, y, w, h, rw, cl, c, multi) {
 	}
 
 	this.grid = a;
+	this.updateDisplayParams(multi);
 }
 
 ////////////////////////////
@@ -92,6 +93,9 @@ Board.prototype.updateDisplayParams = function(isLive) {
 }
 
 Board.prototype.init = function() {
+	if(isMobile()) {
+		showMobileControls();
+	}
 	if(this.multi) {
 		var opponentBoardx = viewportWidth - this.x - this.width;
 		this.opponentBoard = new OpponentBoard(opponentBoardx, this.y, this.width, this.height, this.rows, this.cols, this.gridWidth, this.gridHeight, this.paddingHorizontal, this.paddingVertical);

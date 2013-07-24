@@ -335,6 +335,10 @@ app.get('/static/:file', function(req, res) {
   res.sendfile(__dirname + '/static/' + req.params.file);
 });
 
+app.get('/static/images/:imagefile', function(req, res) {
+  res.sendfile(__dirname + '/static/images/' + req.params.imagefile);
+});
+
 app.get('/:user/profile', function(req, res) {
   res.sendfile(__dirname + '/static/profileView.html');
 });

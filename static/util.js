@@ -83,10 +83,17 @@ function getViewportWidth() {
 }
 
 function getViewportHeight() {
+	//add parens after isMobile when done testing
 	if(window.innerHeight) {
+		if(isMobile && scr.state !== 'menu') {
+			return window.innerHeight - window.innerHeight / 6;
+		}
 		return window.innerHeight;
 	}
 	else if(document.body && document.body.offsetHeight) {
+		if(isMobile && scr.state !== 'menu') {
+			return document.body.offsetHeight - document.body.offsetHeight / 6;
+		}
 		return document.body.offsetHeight;
 	}
 	else {
@@ -110,6 +117,18 @@ function isMobile() {
 	return false;
 }
 
+function showMobileControls() {
+	$('#mobileControls').css('display', 'block');
+	viewportHeight = getViewportHeight();
+	adjustDisplay();
+}
+
+function hideMobileControls() {
+	$('#mobileControls').css('display', 'none');
+	viewportHeight = getViewportHeight();
+	adjustDisplay();
+}
+
 function adjustDisplay() {
 	/*
 	try {
@@ -121,6 +140,18 @@ function adjustDisplay() {
 		r = Raphael('main', viewportWidth, viewportHeight);
 	}
 	*/
+	var buttonWidth = viewportHeight / 6;
+	var buttonPadding = (Math.floor(viewportWidth - buttonWidth * 4) / 4) / 5;
+	$('.mobileControl').attr({
+		height: buttonWidth,
+		width: buttonWidth
+		
+	});
+
+	$('.mobileControl').css({
+		'padding-left': buttonPadding,
+		'padding-right': buttonPadding
+	});
 
 	r.setSize(viewportWidth, viewportHeight);
 	menu.updateDisplayParams();

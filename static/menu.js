@@ -76,6 +76,7 @@ Menu.prototype.generateButtons = function() {
 		board = undefined;
 		scr.state = 'menu';
 		t.state = 'main';
+		hideMobileControls();
 		t.draw();
 	}
 	this.buttons.endGame = new Button("End", endGame);
