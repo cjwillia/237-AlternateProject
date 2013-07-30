@@ -40,7 +40,6 @@ function assignSocketResponses() {
 	});
 
 	server.on('gamestarted', function(){
-		console.log('Live Game Started!');
 		scr.liveGame();
 	});
 
@@ -52,5 +51,9 @@ function assignSocketResponses() {
 		else {
 			menu.multiGameOver(false);
 		}
+	});
+
+	server.on('blockreceive', function(data) {
+		board.blocksReceived = data.blocks;
 	});
 }

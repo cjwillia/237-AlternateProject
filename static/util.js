@@ -85,13 +85,13 @@ function getViewportWidth() {
 function getViewportHeight() {
 	//add parens after isMobile when done testing
 	if(window.innerHeight) {
-		if(isMobile && scr.state !== 'menu') {
+		if(isMobile() && scr.state !== 'menu') {
 			return window.innerHeight - window.innerHeight / 6;
 		}
 		return window.innerHeight;
 	}
 	else if(document.body && document.body.offsetHeight) {
-		if(isMobile && scr.state !== 'menu') {
+		if(isMobile() && scr.state !== 'menu') {
 			return document.body.offsetHeight - document.body.offsetHeight / 6;
 		}
 		return document.body.offsetHeight;
@@ -177,6 +177,12 @@ function adjustDisplay() {
 	}
 }
 
+function timerStringToSeconds(str) {
+	var parts = str.split(":");
+	var mins = Number(parts[0]);
+	var secs = Number(parts[1]);
+	return mins * 60 + secs;
+}
 
 //I stole this
 
@@ -200,14 +206,23 @@ function deepCopy(obj) {
     return obj;
 }
 
-
-//TODO: add other playerInfo parameters
 function getPlayerInfo() {
 	function processPlayerInfo (data) {
 		scr.playerInfo.username = data.name;
 		scr.playerInfo.highScore = Number(data.highScore);
 		scr.playerInfo.wins = Number(data.wins);
 		scr.playerInfo.totalScore = Number(data.totalScore);
+		scr.playerInfo.longestGameTime = Number(data.longestGameTime);
+		scr.playerInfo.losses = Number(data.losses);
+		scr.playerInfo.winRatio = Number(data.winRatio);
+		scr.playerInfo.gamesPlayed = Number(data.gamesPlayed);
+		scr.playerInfo.scoresThisWeek = data.scoresThisWeek;
+		scr.playerInfo.scoreDeltasThisWeek = data.scoreDeltasThisWeek;
+		scr.playerInfo.totalBlocksCleared = Number(data.totalBlocksCleared);
+		scr.playerInfo.redBlocksCleared = Number(data.redBlocksCleared);
+		scr.playerInfo.blueBlocksCleared = Number(data.blueBlocksCleared);
+		scr.playerInfo.greenBlocksCleared = Number(data.greenBlocksCleared);
+		scr.playerInfo.yellowBlocksCleared = Number(data.yellowBlocksCleared);
 	}
 	$.get(
 		'/me',
@@ -220,7 +235,18 @@ function sendInfoUpdate() {
 	var updates = {
 		highScore: scr.playerInfo.highScore,
 		wins: scr.playerInfo.wins,
-		totalScore: scr.playerInfo.totalScore
+		totalScore: scr.playerInfo.totalScore,
+		longestGameTime: scr.playerInfo.longestGameTime,
+		losses: scr.playerInfo.losses,
+		winRatio: scr.playerInfo.winRatio,
+		gamesPlayed: scr.playerInfo.gamesPlayed,
+		scoresThisWeek: scr.playerInfo.scoresThisWeek,
+		scoreDeltasThisWeek: scr.playerInfo.scoreDeltasThisWeek,
+		totalBlocksCleared: scr.playerInfo.totalBlocksCleared,
+		redBlocksCleared: scr.playerInfo.redBlocksCleared,
+		blueBlocksCleared: scr.playerInfo.blueBlocksCleared,
+		greenBlocksCleared: scr.playerInfo.greenBlocksCleared,
+		yellowBlocksCleared: scr.playerInfo.yellowBlocksCleared
 	}
 	$.post('/playerupdate', {updates: updates});
 }

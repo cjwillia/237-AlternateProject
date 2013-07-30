@@ -12,6 +12,8 @@ var rows = 9;
 var cols = 6;
 var menuColor = "#4D2037";
 var colors = ["red", "blue", "green", "yellow"];
+var today = new Date();
+var battleManager;
 
 
 function userControl() {
@@ -87,6 +89,7 @@ window.onload = function () {
 	viewportWidth = getViewportWidth();
 	viewportHeight = getViewportHeight();
 	userControl();
+	battleManager = new BattleManager();
 	r = Raphael('main', viewportWidth, viewportHeight);
 	menu = new Menu(menuColor);
 	adjustDisplay();

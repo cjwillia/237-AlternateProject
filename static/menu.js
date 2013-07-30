@@ -18,13 +18,40 @@ Menu.prototype.updateDisplayParams = function() {
 }
 
 Menu.prototype.generateButtons = function() {
+	var t = this;
 	//generate Play Single Player
 	var singlePlayer = function() {
-		scr.singleGame();
+		t.state = "singleplayer";
+		t.draw();
 	}
 	this.buttons.singlePlayer = new Button("Single Player", singlePlayer);
 
-	var t = this;
+	//generate Score Attack
+	var scoreAttack = function() {
+		scr.singleGame();
+	}
+	this.buttons.scoreAttack = new Button("Score Attack", scoreAttack);
+
+	//generate Infinite Mode
+	var infiniteMode = function() {
+		scr.infiniteGame();
+	}
+	this.buttons.infiniteMode = new Button("Infinite Mode", infiniteMode);
+
+	//generate Help
+	var help = function() {
+		window.location.href = "/help";
+	}
+
+	this.buttons.help = new Button("Help", help);
+
+	//generate profile
+	var profile = function() {
+		window.location.href = "/" + scr.playerInfo.username + "/profile";
+	}
+
+	this.buttons.profile = new Button("Profile", profile);
+
 	//generate Go Online
 	var online = function() {
 		t.state = "multiplayer";
@@ -87,7 +114,10 @@ Menu.prototype.draw = function(page) {
 	this.generateButtons();
 	switch(this.state){
 		case "main":
-			this.drawMenu([this.buttons.singlePlayer, this.buttons.online, this.buttons.logout]);
+			this.drawMenu([this.buttons.singlePlayer, this.buttons.online, this.buttons.profile, this.buttons.help, this.buttons.logout]);
+			break;
+		case "singleplayer":
+			this.drawMenu([this.buttons.scoreAttack, this.buttons.infiniteMode, this.buttons.mainMenu]);
 			break;
 		case "multiplayer":
 			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.mainMenu]);
@@ -271,12 +301,39 @@ Menu.prototype.soloGameOver = function() {
 	var line2 = "Your Score: " + board.score;
 	scr.playerInfo.totalScore += board.score;
 	scr.playerInfo.gamesPlayed++;
+	var day = today.getDay();
+	var date = today.getDate();
+	if(scr.playerInfo.scoresThisWeek[day]["date"] === date) {
+		scr.playerInfo.scoresThisWeek[day].list.push(board.score);
+	}
+	else {
+		scr.playerInfo.scoresThisWeek[day] = {
+			date: date,
+			list: [board.score]
+		};
+	}
 	this.drawMiniWindow(line1, line2);
 }
 
 Menu.prototype.redrawSoloGameOver = function() {
 	var line1 = "Game Over!";
 	var line2 = "Your Score: " + board.score;
+	this.drawMiniWindow(line1, line2);
+}
+
+Menu.prototype.infiniteGameOver = function() {
+	var line1 = "Game Over!";
+	var line2 = board.score + " points in " + board.timerString;
+	var timerSeconds = timerStringToSeconds(board.timerString);
+	if(timerSeconds > scr.playerInfo.longestGameTime) {
+		scr.playerInfo.longestGameTime = timerSeconds;
+	}
+	this.drawMiniWindow(line1, line2);
+}
+
+Menu.prototype.redrawInfiniteGameOver = function() {
+	var line1 = "Game Over!";
+	var line2 = board.score + " points in " + board.timerString;
 	this.drawMiniWindow(line1, line2);
 }
 
@@ -295,6 +352,18 @@ Menu.prototype.multiGameOver = function(won) {
 		line1 = "You lost :/";
 		line2 = "Lifetime score: " + scr.playerInfo.totalScore;
 		this.state = "multiGameLost";
+	}
+	var scoreDelt = board.score - board.opponentBoard.score;
+	var day = today.getDay();
+	var date = today.getDate();
+	if(scr.playerInfo.scoreDeltasThisWeek[day]["date"] === date) {
+		scr.playerInfo.scoreDeltasThisWeek[day].list.push(scoreDelt);
+	}
+	else {
+		scr.playerInfo.scoreDeltasThisWeek[day] = {
+			date: date,
+			list: [scoreDelt]
+		};
 	}
 	scr.playerInfo.winRatio = scr.playerInfo.wins / scr.playerInfo.losses;
 	this.drawMiniWindow(line1, line2)

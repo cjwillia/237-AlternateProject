@@ -1,6 +1,4 @@
-//TODO: Touch Buttons
-
-function Board(x, y, w, h, rw, cl, c, multi) {
+function Board(x, y, w, h, rw, cl, c, multi, infinite) {
 	
 	this.x = x;
 	this.y = y;
@@ -24,10 +22,12 @@ function Board(x, y, w, h, rw, cl, c, multi) {
 	this.combo = 1;
 	this.score = 0;
 	this.timeStarted = new Date();
-	this.timerString = "2:00";
+	this.timerString = infinite ? "0:00" : "2:00";
 	this.over = false;
 	this.disableKeys = false;
-	
+	this.blocksReceived = undefined;
+	this.infinite = infinite;
+
 	var a = [];
 	var i = 0;
 
@@ -236,6 +236,13 @@ Board.prototype.hardDrop = function() {
 
 Board.prototype.updateTime = function() {
 	var d = Math.floor(((new Date()) - this.timeStarted) / 1000);
+	if(this.infinite) {
+		var minute = Math.floor(d / 60);
+		var second = d % 60;
+		var s = "" + minute + ":" + (second < 10 ? "0" + second : second);
+		this.timerString = s;
+		return;
+	}
 	if(d === 0) {
 		this.timerString = "2:00";
 		return;
@@ -263,7 +270,7 @@ Board.prototype.tick = function() {
 		return;
 	}
 
-	if(this.timerString === "0:00") {
+	if(this.timerString === "0:00" && !this.infinite) {
 		this.gameOver();
 		return;
 	}
@@ -343,8 +350,6 @@ Board.prototype.gravitize = function(cb) {
 			}
 		}
 	}
-
-	
 	
 	//animate
 	if(anims.length > 0) {
@@ -428,15 +433,27 @@ Board.prototype.clearHelper = function(block, color, from) {
 
 Board.prototype.clearMarked = function () {
 	var grid = this.grid;
+	var numCleared = 0;
 	for(var i = 0; i < this.cols; i++) {
 		for(var j = 0; j < this.rows; j++) {
 			var b = grid[i][j];
 			if(b.clearMark) {
+				if(b.color === "red")
+					scr.playerInfo.redBlocksCleared++;
+				else if(b.color === "blue")
+					scr.playerInfo.blueBlocksCleared++;
+				else if(b.color === "yellow")
+					scr.playerInfo.yellowBlocksCleared++;
+				else if(b.color === "green")
+					scr.playerInfo.greenBlocksCleared++;
 				b.image.remove();
 				grid[i][j] = 0;
+				scr.playerInfo.totalBlocksCleared++;
+				numCleared++;
 			}
 		}
 	}
+	battleManager.sendBlocks(numCleared);
 	this.grid = grid;
 }
 
@@ -569,8 +586,8 @@ Board.prototype.pieceLock = function() {
 
 	var cb = function() {
 		t.comboStarter();
-		if(t.grid[2][0].class === "StationaryClearer" || t.grid[2][0].class === "StationaryBlock"
-		 || t.grid[3][0].class === "StationaryClearer" || t.grid[3][0].class === "StationaryBlock") {
+		if(t.grid[Math.floor(t.cols / 2) - 1][0].class === "StationaryClearer" || t.grid[Math.floor(t.cols / 2) - 1][0].class === "StationaryBlock"
+		 || t.grid[Math.floor(t.cols / 2)][0].class === "StationaryClearer" || t.grid[Math.floor(t.cols / 2)][0].class === "StationaryBlock") {
 			t.gameOver();
 			return;
 		}
@@ -582,6 +599,11 @@ Board.prototype.pieceLock = function() {
 		t.disableKeys = false;
 	}
 
+	if(this.blocksReceived) {
+		battleManager.receiveBlocks(this.blocksReceived);
+		this.blocksReceived = undefined;
+	}
+
 	this.gravitize(cb);
 	
 }
@@ -589,6 +611,8 @@ Board.prototype.pieceLock = function() {
 Board.prototype.gameOver = function() {
 	this.draw(r);
 	this.over = true;
+	scr.playerInfo.gamesPlayed++;
+	battleManager.active = false;
 	if(this.multi) {
 		if(this.timerString === "0:00"){
 			server.emit("timeUp");
@@ -598,7 +622,12 @@ Board.prototype.gameOver = function() {
 		}
 	}
 	else {
-		menu.soloGameOver();
+		if(this.infinite) {
+			menu.infiniteGameOver();
+		}
+		else {
+			menu.soloGameOver();
+		}
 	}
 }
 

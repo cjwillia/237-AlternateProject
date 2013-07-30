@@ -127,9 +127,10 @@ function PlayerInfo (name) {
   this.winRatio = 0;
   this.gamesPlayed = 0;
   this.highScore = 0;
+  this.longestGameTime = 0;
   this.totalScore = 0;
-  this.scoresThisWeek = [];
-  this.scoreDeltasThisWeek = [];
+  this.scoresThisWeek = [{}, {}, {}, {}, {}, {}, {}];
+  this.scoreDeltasThisWeek = [{}, {}, {}, {}, {}, {}, {}];
   this.totalBlocksCleared = 0;
   this.redBlocksCleared = 0;
   this.blueBlocksCleared = 0;
@@ -185,7 +186,7 @@ Game.prototype.removePlayer = function(p) {
 Game.prototype.start = function() {
   var t = this;
   this.status = 1;
-  this.players.forEach(function(p) {
+  this.players.forEach(function(p, i) {
     p.socket.emit('gamestarted');
     p.socket.on('timeUp', function() {
       t.end();
@@ -193,6 +194,10 @@ Game.prototype.start = function() {
     p.socket.on('lose', function() {
       t.loser = p;
       t.end();
+    });
+    p.socket.on('blocksend', function(data) {
+      var otherPlayer = i === 0 ? 1 : 0;
+      t.players[otherPlayer].socket.emit('blockreceive', {blocks : data.blocks})
     });
   });
   var f = function() {
@@ -310,6 +315,10 @@ app.get('/', function (req, res) {
   });
 });
 
+app.get('/help', function (req, res) {
+  res.sendfile(__dirname + '/static/help.html');
+});
+
 app.get('/me', function(req, res) {
   mongoExpressAuth.checkLogin(req, res, function(err){
     if (err)
@@ -340,7 +349,7 @@ app.get('/static/images/:imagefile', function(req, res) {
 });
 
 app.get('/:user/profile', function(req, res) {
-  res.sendfile(__dirname + '/static/profileView.html');
+  res.sendfile(__dirname + '/static/profilePage.html');
 });
 
 app.get('/api/playerInfo/get/:user', function(req, res) {

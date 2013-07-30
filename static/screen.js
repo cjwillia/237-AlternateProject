@@ -9,6 +9,7 @@ function Screen() {
 		username: "NONE",
 		highScore: undefined,
 		totalScore: undefined,
+		longestGameTime: 0,
 		wins: 0,
 		losses: 0,
 		winRatio: 0,
@@ -80,7 +81,17 @@ Screen.prototype.singleGame = function() {
 	var boardy = viewportHeight / 5;
 	var boardWidth = viewportWidth / 5;
 	var boardHeight = viewportHeight * 3 / 5;
-	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, false);
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, false, false);
+	board.init();
+}
+
+Screen.prototype.infiniteGame = function() {
+	this.state = "infiniteGame";
+	var boardx = viewportWidth * 4 / 10;
+	var boardy = viewportHeight / 5;
+	var boardWidth = viewportWidth / 5;
+	var boardHeight = viewportHeight * 3 / 5;
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, false, true);
 	board.init();
 }
 
@@ -90,6 +101,17 @@ Screen.prototype.liveGame = function() {
 	var boardy = viewportHeight / 5;
 	var boardWidth = viewportWidth / 5;
 	var boardHeight = viewportHeight * 3 / 5;
-	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, true);
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, true, false);
+	board.init();
+}
+
+Screen.prototype.liveBattle = function() {
+	this.state = "liveBattle";
+	var boardx = viewportWidth / 10;
+	var boardy = viewportHeight / 5;
+	var boardWidth = viewportWidth / 5;
+	var boardHeight = viewportHeight * 3 / 5;
+	battleManager.active = true;
+	board = new Board(boardx, boardy, boardWidth, boardHeight, rows, cols, colors, true, false);
 	board.init();
 }
