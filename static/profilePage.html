@@ -2,9 +2,14 @@
 	<link rel="stylesheet" type="text/css" href="/static/profileStyle.css">
 	<script type="text/javascript" src="/static/jquery-1.9.1.min.js"></script>
 	<script type="text/javascript" src="/static/profilePage.js"></script>
+	<script type="text/javascript" src="/static/raphael-min.js"></script>
+	<script type="text/javascript" src="/static/g.raphael-min.js"></script>
+	<script type="text/javascript" src="/static/g.line-min.js"></script>
+	<script type="text/javascript" src="/static/util.js"></script>
+
 
 	<div id="main" class="contentBox">
-		<h1 id="username">Placeholder: USERNAME</h1>
+		<h1 id="username"></h1>
 		<ul id="swapbuttons">
 			<li id="scoreLink" class="selected"><span>Score</span></li>
 			<li id="multiLink"><span>Multiplayer</span></li>
@@ -13,20 +18,23 @@
 		<div id="scoreInfoContainer">
 			<p>All-Time High Score: <span id="highScore"></span></p>
 			<p>Total score: <span id="totalScore"></span></p>
-			<p>Placeholder: Graph of Scores Over Time (7 days)</p>
+			<p>Longest Infinite Game: <span id="longestGameTime"></span> seconds</p>
+			<div id="scoreLineChart"></div>
 		</div>
 		<div id="multiInfoContainer">
 			<p>Win/Loss Ratio: <span id="winRatio"></span></p>
 			<p>Total Wins: <span id="wins"></span></p>
-			<p>Placeholder: Graph of Wins and Losses by point deltas (7 days)</p>
+			<p>Total Losses: <span id="losses"></span></p>
+			<div id="scoreDeltaLineChart"></div>
 		</div>
 		<div id="miscInfoContainer">
-			<p>Total Blocks Cleared: <span id="totalBlocksCleared"></span></p>
 			<p>Games Played: <span id="gamesPlayed"></span></p>
-			<p>Placeholder: Table of miscellaneous stats</p>
+			<p>Total Blocks Cleared: <span id="totalBlocksCleared"></span></p>
+			<p>Red Blocks Cleared: <span id="redBlocksCleared"></span></p>
+			<p>Blue Blocks Cleared: <span id="blueBlocksCleared"></span></p>
+			<p>Green Blocks Cleared: <span id="greenBlocksCleared"></span></p>
+			<p>Yellow Blocks Cleared: <span id="yellowBlocksCleared"></span></p>
 		</div>
-		
-
 	</div>
 
 </body>

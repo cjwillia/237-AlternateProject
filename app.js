@@ -129,8 +129,8 @@ function PlayerInfo (name) {
   this.highScore = 0;
   this.longestGameTime = 0;
   this.totalScore = 0;
-  this.scoresThisWeek = [{}, {}, {}, {}, {}, {}, {}];
-  this.scoreDeltasThisWeek = [{}, {}, {}, {}, {}, {}, {}];
+  this.recentScores = [];
+  this.recentScoreDeltas = [];
   this.totalBlocksCleared = 0;
   this.redBlocksCleared = 0;
   this.blueBlocksCleared = 0;
@@ -203,6 +203,7 @@ Game.prototype.start = function() {
   var f = function() {
     t.distributeUpdate();
   }
+  gameList.splice(this.index, 1);
   setTimeout(f, 200);
 }
 
@@ -231,7 +232,6 @@ Game.prototype.distributeUpdate = function() {
     }
     socketA.emit('gameover', {'name': this.winner.name});
     socketB.emit('gameover', {'name': this.winner.name});
-    gameList.splice(this.index, 1);
   }
 }
 
@@ -266,35 +266,6 @@ io.sockets.on('connection', function(socket) {
     player = new Player(data.username, socket);
     playerListIndex = playerList.push(player) - 1;
     socket.emit('playerregistered', {index: playerListIndex});
-  });
-
-  socket.on('newgamerequest', function(data) {
-    var g = new Game(data.name, player);
-    handler.add(g);
-    var n = handler.nextGameIndex;
-    socket.on('quit', function() {
-      handler.remove(n);
-    });
-    socket.emit('gamecreated', {'game': g.id});
-  });
-
-  socket.on('joinrequest', function(data) {
-    var game = handler.gameList[handler.nextGameIndex];
-    if(game) {
-      game.addPlayer(player);
-      socket.emit('gamejoinsuccess', {'game': game.id});
-    }
-    else {
-      socket.emit('gamejoinfail');
-    }
-  });
-
-  socket.on('gridrequest', function() {
-
-  });
-
-  socket.on('scorerequest', function() {
-
   });
 
   socket.on('disconnect', function() {
@@ -364,12 +335,13 @@ app.get('/api/playerInfo/get/:user', function(req, res) {
 app.get('/gamesList', function(req, res) {
   var responseList = [];
   gameList.forEach(function(e) {
-    var ins = {};
-    ins.index = e.index;
-    ins.name = e.name;
-    ins.numPlayers = e.players.length;
-    responseList.push(ins);
+      var ins = {};
+      ins.index = e.index;
+      ins.name = e.name;
+      ins.numPlayers = e.players.length;
+      responseList.push(ins);
   });
+  console.log(gameList);
   res.send(responseList);
 });
 
@@ -423,6 +395,7 @@ app.post('/leaveGame', function(req, res) {
       var game = gameList[req.body.gameIndex];
       if(game) {
         if(game.removePlayer(player)) {
+          gameList.splice(req.body.gameIndex, 1);
           res.send('success');
         }
         else {
@@ -442,22 +415,6 @@ app.post('/login', function(req, res) {
       res.send(err);
     else
       res.send('nailed it');
-  });
-});
-
-//GET RID OF THIS LATER
-app.post('/addInfo', function(req, res) {
-  mongoExpressAuth.checkLogin(req, res, function(err) {
-    if(err)
-      res.send(err);
-    else {
-      insertPlayerInfo(req.session.username, function(err, result) {
-        if(err)
-          res.send(err);
-        else
-          res.send(result);
-      });
-    }
   });
 });
 

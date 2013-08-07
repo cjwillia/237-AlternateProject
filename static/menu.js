@@ -58,6 +58,23 @@ Menu.prototype.generateButtons = function() {
 		t.draw();
 	}
 	this.buttons.online = new Button("Online", online);
+
+	//generate live Game Lobby
+	var liveGameLobby = function() {
+		battleManager.active = false;
+		t.state = "liveGameLobby";
+		t.draw();
+	}
+	this.buttons.liveGameLobby = new Button("Live Score Battle", liveGameLobby);
+
+	//generate live Battle Lobby
+	var liveBattleLobby = function() {
+		battleManager.active = true;
+		t.state = "liveBattleLobby";
+		t.draw();
+	}
+	this.buttons.liveBattleLobby = new Button("Live Block Battle", liveBattleLobby);
+
 	//generate Create Game
 	var create = function() {
 		createGame();
@@ -95,10 +112,16 @@ Menu.prototype.generateButtons = function() {
 	}
 	this.buttons.backToOnline = new Button("Quit", backToOnline);
 
+	//generate Leave Lobby
+	var leaveLobby = function() {
+		t.state = "multiplayer";
+		battleManager.active = false;
+		t.draw();
+	}
+	this.buttons.leaveLobby = new Button("Back", leaveLobby);
+
+	//generate End Game
 	var endGame = function() {
-		if(board.score > scr.highScore) {
-			scr.highScore = board.score;
-		}
 		sendInfoUpdate();
 		board = undefined;
 		scr.state = 'menu';
@@ -120,7 +143,13 @@ Menu.prototype.draw = function(page) {
 			this.drawMenu([this.buttons.scoreAttack, this.buttons.infiniteMode, this.buttons.mainMenu]);
 			break;
 		case "multiplayer":
-			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.mainMenu]);
+			this.drawMenu([this.buttons.liveGameLobby, this.buttons.mainMenu]);
+			break;
+		case "liveGameLobby":
+			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.leaveLobby]);
+			break;
+		case "liveBattleLobby":
+			this.drawMenu([this.buttons.createGame, this.buttons.joinGame, this.buttons.leaveLobby]);
 			break;
 		case "waiting":
 			this.drawWaiting();
@@ -130,7 +159,7 @@ Menu.prototype.draw = function(page) {
 			var t = this;
 			getGameList(function(list) {
 				t.drawGameList(list, page);
-			})
+			});
 			break;
 		case "soloGameOver":
 			this.redrawSoloGameOver();
@@ -204,7 +233,6 @@ Menu.prototype.drawGameListControls = function(space, y, height, page, lastPage)
 }
 
 Menu.prototype.drawGameList = function(list, page) {
-	if(viewportHeight < viewportWidth) {
 		var width = 200;
 		var height = 150;
 		var minPadding = 10;
@@ -233,13 +261,8 @@ Menu.prototype.drawGameList = function(list, page) {
 				}
 			}
 		}
-		console.log(rows);
 		var lastrow = verticalSpacing + height / 2 + (verticalSpacing + (height)) * (rows);
 		this.drawGameListControls(horizontalSpacing * 3, lastrow, height / 2, page, lastPage);
-	}
-	else {
-		//gfy
-	}
 }
 
 Menu.prototype.drawWaiting = function() {
@@ -301,17 +324,13 @@ Menu.prototype.soloGameOver = function() {
 	var line2 = "Your Score: " + board.score;
 	scr.playerInfo.totalScore += board.score;
 	scr.playerInfo.gamesPlayed++;
-	var day = today.getDay();
-	var date = today.getDate();
-	if(scr.playerInfo.scoresThisWeek[day]["date"] === date) {
-		scr.playerInfo.scoresThisWeek[day].list.push(board.score);
+	if(board.score > scr.playerInfo.highScore) {
+		scr.playerInfo.highScore = board.score;
 	}
-	else {
-		scr.playerInfo.scoresThisWeek[day] = {
-			date: date,
-			list: [board.score]
-		};
+	if(scr.playerInfo.recentScores.length === 30) {
+		scr.playerInfo.recentScores.shift();
 	}
+	scr.playerInfo.recentScores.push(board.score);
 	this.drawMiniWindow(line1, line2);
 }
 
@@ -354,17 +373,10 @@ Menu.prototype.multiGameOver = function(won) {
 		this.state = "multiGameLost";
 	}
 	var scoreDelt = board.score - board.opponentBoard.score;
-	var day = today.getDay();
-	var date = today.getDate();
-	if(scr.playerInfo.scoreDeltasThisWeek[day]["date"] === date) {
-		scr.playerInfo.scoreDeltasThisWeek[day].list.push(scoreDelt);
+	if(scr.playerInfo.recentScoreDeltas.length === 30) {
+		scr.playerInfo.recentScoreDeltas.shift();
 	}
-	else {
-		scr.playerInfo.scoreDeltasThisWeek[day] = {
-			date: date,
-			list: [scoreDelt]
-		};
-	}
+	scr.playerInfo.recentScoreDeltas.push(scoreDelt);
 	scr.playerInfo.winRatio = scr.playerInfo.wins / scr.playerInfo.losses;
 	this.drawMiniWindow(line1, line2)
 }

@@ -100,4 +100,11 @@ window.onresize = function() {
 	viewportWidth = getViewportWidth();
 	viewportHeight = getViewportHeight();
 	adjustDisplay();
+};
+
+window.onbeforeunload = function() {
+	if(scr.state === "liveGame") {
+		server.emit('lose');
+		console.log('forfeit');
+	}
 }

@@ -206,6 +206,10 @@ function deepCopy(obj) {
     return obj;
 }
 
+function deString(e, i, a) {
+	a[i] = Number(e);
+}
+
 function getPlayerInfo() {
 	function processPlayerInfo (data) {
 		scr.playerInfo.username = data.name;
@@ -216,13 +220,15 @@ function getPlayerInfo() {
 		scr.playerInfo.losses = Number(data.losses);
 		scr.playerInfo.winRatio = Number(data.winRatio);
 		scr.playerInfo.gamesPlayed = Number(data.gamesPlayed);
-		scr.playerInfo.scoresThisWeek = data.scoresThisWeek;
-		scr.playerInfo.scoreDeltasThisWeek = data.scoreDeltasThisWeek;
+		scr.playerInfo.recentScores = data.recentScores;
+		scr.playerInfo.recentScoreDeltas = data.recentScoreDeltas;
 		scr.playerInfo.totalBlocksCleared = Number(data.totalBlocksCleared);
 		scr.playerInfo.redBlocksCleared = Number(data.redBlocksCleared);
 		scr.playerInfo.blueBlocksCleared = Number(data.blueBlocksCleared);
 		scr.playerInfo.greenBlocksCleared = Number(data.greenBlocksCleared);
 		scr.playerInfo.yellowBlocksCleared = Number(data.yellowBlocksCleared);
+		scr.playerInfo.recentScores.forEach(deString);
+		scr.playerInfo.recentScoreDeltas.forEach(deString);
 	}
 	$.get(
 		'/me',
@@ -240,8 +246,8 @@ function sendInfoUpdate() {
 		losses: scr.playerInfo.losses,
 		winRatio: scr.playerInfo.winRatio,
 		gamesPlayed: scr.playerInfo.gamesPlayed,
-		scoresThisWeek: scr.playerInfo.scoresThisWeek,
-		scoreDeltasThisWeek: scr.playerInfo.scoreDeltasThisWeek,
+		recentScores: scr.playerInfo.recentScores,
+		recentScoreDeltas: scr.playerInfo.recentScoreDeltas,
 		totalBlocksCleared: scr.playerInfo.totalBlocksCleared,
 		redBlocksCleared: scr.playerInfo.redBlocksCleared,
 		blueBlocksCleared: scr.playerInfo.blueBlocksCleared,
@@ -249,6 +255,19 @@ function sendInfoUpdate() {
 		yellowBlocksCleared: scr.playerInfo.yellowBlocksCleared
 	}
 	$.post('/playerupdate', {updates: updates});
+}
+
+function compileWeekList(weekScores) {
+	var res = [];
+	for(var i = 0; i < weekScores.length; i++) {
+		var dayList = weekScores[i]["list"];
+		if(dayList !== null && dayList.length > 0) {
+			for(var j = 0; j < dayList.length; j++) {
+				res.push(dayList[j]);
+			}
+		}
+	}
+	return res;
 }
 
 function getPlayerList(onGet) {

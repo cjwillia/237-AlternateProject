@@ -5,6 +5,7 @@ function Screen() {
 	this.gameId = undefined;
 	this.gameList = [];
 	this.selectedGame = "NONE";
+	this.maxListLength = 30;
 	this.playerInfo = {
 		username: "NONE",
 		highScore: undefined,
@@ -14,8 +15,8 @@ function Screen() {
 		losses: 0,
 		winRatio: 0,
 		gamesPlayed: 0,
-		scoresThisWeek: [],
-		scoreDeltasThisWeek: [],
+		recentScores: [],
+		recentScoreDeltas: [],
 		totalBlocksCleared: 0,
 		redBlocksCleared: 0,
 		blueBlocksCleared: 0,

@@ -1,7 +1,6 @@
 function BattleManager() {
 	this.blocksToSend = [];
-	this.blocksRecieved = [];
-	this.active = false;
+	this.active = "false";
 	this.blockSendThreshold = 4;
 }
 
@@ -34,7 +33,7 @@ BattleManager.prototype.receiveBlocks = function(blocks) {
 		var newBlock = new StationaryBlock(block.x, y, block.color);
 		if(board.grid[newBlock.x][newBlock.y] === 0) {
 			board.grid[newBlock.x][newBlock.y] = newBlock;
-			board.receivedBlocks.push(newBlock);
+			board.blocksReceived.push(newBlock);
 			row[block.x]++;
 		}
 	}
